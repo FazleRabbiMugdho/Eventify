@@ -28,19 +28,19 @@ The primary goal is to build a high-concurrency, full-stack web application that
 
 
 ## Key Features
-**Phase 1: Exclusive & Advanced Features**
+**1. Exclusive & Advanced Features**
 
 - AI-Powered Event Recommendations
 - Automated E-Ticket Generator
 - Real-Time Analytics for Organizers
 - Background Notification System
 
-**Phase 2: User Authentication & Security**
+**2. User Authentication & Security**
 - JWT-Based Authentication
 - Role-Based Access Control (RBAC)
 - Secure API Middleware
   
-**Phase 3: Core CRUD Operations**
+**3. Core CRUD Operations**
 - Events Management
 - Booking System
 - Category Management
@@ -57,7 +57,7 @@ The primary goal is to build a high-concurrency, full-stack web application that
 | DELETE |	/api/admin/users/{id} | (Protected) Admin capability to ban or remove users |
 
 ## Project Milestones
-**1. Foundation & Authentication**
+**Phase 1: Foundation & Authentication**
 
  - Initial React Setup
 
@@ -65,13 +65,13 @@ The primary goal is to build a high-concurrency, full-stack web application that
 
 - User Profiles & Role Logic
 
-**2. Core Logic & Transactions**
+**Phase 2: Core Logic & Transactions**
 
 - Organizer Dashboard (CRUD)
 
 - Order History
 
-**3. Advanced Features & Optimization**
+**Phase 3: Advanced Features & Optimization**
 
 - AI Integration
 
