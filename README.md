@@ -1,38 +1,83 @@
-# Full-Stack Project Starter Template
-
-This is a **full-stack starter template** for students to build their projects.  
-It has a structured folder setup with separate **client**, **server**, and **database** directories, making it easy to organize your application logic and development workflow.
-
----
-
-## Project Structure
-
-project-root/
-├── client/ # Frontend application (React, Vue, etc.)
-├── server/ # Backend application (Laravel, Node.js, etc.)
-└── database/ # Database migrations, seeders, or SQL scripts
+# Eventify
+A Scalable REST-Driven Event Marketplace
+## Team Members
+| Name | Student ID | Role |
+|------|------------|------|
+| Fazle Rabbi Mugdho | 20230104002 | Project Lead |
+| Auniruddho Halder | 20230104006 | Frontend Developer |
+| Mahim Abdullah Rianto | 20230104015 | Frontend Developer |
+| Partha Saha | 20230104017 | Backend Developer |
 
 
-- **client**: Your frontend code, responsible for UI and API requests.
-- **server**: The backend code (Laravel API in this template) handling business logic and serving API endpoints.
-- **database**: Database schema, migrations, and seed data.
+## Objective
 
----
+The primary goal is to build a high-concurrency, full-stack web application that serves as a real-time event marketplace. It focuses on decoupling the backend (Laravel REST API) from the frontend (React UI) to ensure high performance, scalability, and a seamless user experience. Key technical objectives include implementing dynamic event discovery with pagination, a secure transaction engine for ticket booking, and background processing for automated notifications
 
-## Prerequisites
+## Target Audience
 
-Make sure the following are installed:
+ - Technical Recruiters
+ - Event Organizers
+ - End Users
 
-- PHP >= 8.1 (for Laravel backend)
-- Composer
-- Node.js >= 18
-- npm or Yarn
-- MySQL / PostgreSQL / SQLite
 
----
+## Tech Stack
+ - **Frontend:** React Client-Side UI
+ - **Backend:** Laravel REST API Server
+ - **Rendering method:** Client-Side Rendering (modern approach used by standard React applications)
 
-## Setup Instructions
 
-```bash
-git clone <repository-url>
-cd project-root
+
+## Key Features
+**Phase 1: Exclusive & Advanced Features**
+
+- AI-Powered Event Recommendations
+- Automated E-Ticket Generator
+- Real-Time Analytics for Organizers
+- Background Notification System
+
+**Phase 2: User Authentication & Security**
+- JWT-Based Authentication
+- Role-Based Access Control (RBAC)
+- Secure API Middleware
+  
+**Phase 3: Core CRUD Operations**
+- Events Management
+- Booking System
+- Category Management
+
+## API Endpoints
+| Method | Endpoint |	Description |
+|--------|----------|-------------|
+| GET | /api/events | Fetch all events (supports query params for search/filter and pagination) |
+| POST | /api/register | User registration for new customers/organizers |
+| POST |	/api/login | Secure login to receive a JWT Bearer Token |
+| POST |	/api/bookings | (Protected) The "Transaction Engine" endpoint to process a ticket purchase |
+| GET |	/api/user/profile |	(Protected) Fetch the authenticated user's details and booking history |
+| PUT |	/api/organizer/events/{id} | (Protected) Allow organizers to update their specific event data |
+| DELETE |	/api/admin/users/{id} | (Protected) Admin capability to ban or remove users |
+
+## Project Milestones
+**1. Foundation & Authentication**
+
+ - Initial React Setup
+
+ - Basic Event CRUD
+
+- User Profiles & Role Logic
+
+**2. Core Logic & Transactions**
+
+- Organizer Dashboard (CRUD)
+
+- Order History
+
+**3. Advanced Features & Optimization**
+
+- AI Integration
+
+- Admin Command Center
+
+- Automated E-Ticket Generation
+
+
+
