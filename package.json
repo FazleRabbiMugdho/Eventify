@@ -1,7 +1,10 @@
 {
-  "name": "attendance_tracker",
+  "name": "Eventify",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "22.14.0"
+  },
   "scripts": {
     "start:client": "cd client && npm run dev",
     "start:server": "cd server && php artisan serve",
