@@ -1,14 +1,16 @@
 import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../App";
-import { 
-  ChevronLeft, Mail, Phone, MapPin, Moon, Sun, 
+import { useAuth } from "../context/AuthContext";
+import {
+  ChevronLeft, Mail, Phone, MapPin, Moon, Sun,
   Bell, ShieldCheck, HelpCircle, LogOut, Edit3, Settings, AlertCircle
 } from "lucide-react";
 
 export default function Profile() {
   const navigate = useNavigate();
   const { darkMode, setDarkMode } = useContext(ThemeContext);
+  const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const profileStats = [
@@ -18,7 +20,8 @@ export default function Profile() {
   ];
 
   const handleLogout = () => {
-    navigate('/login');
+    logout();
+    navigate('/');
   };
 
   return (
@@ -35,10 +38,10 @@ export default function Profile() {
         <div className="lg:col-span-4">
           <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-[45px] p-10 text-white shadow-2xl shadow-indigo-500/20 text-center relative overflow-hidden">
             <div className="relative inline-block mb-6">
-              <div className="w-32 h-32 rounded-full border-4 border-white/20 flex items-center justify-center bg-white/10 text-4xl font-black backdrop-blur-md">JD</div>
+              <div className="w-32 h-32 rounded-full border-4 border-white/20 flex items-center justify-center bg-white/10 text-4xl font-black backdrop-blur-md">{user?.fullName?.slice(0, 2).toUpperCase() ?? "?"}</div>
               <button className="absolute bottom-1 right-1 w-10 h-10 bg-white rounded-full flex items-center justify-center text-indigo-600 shadow-lg hover:scale-110 transition-transform"><Edit3 size={18} /></button>
             </div>
-            <h2 className="text-2xl font-black mb-1">John Doe</h2>
+            <h2 className="text-2xl font-black mb-1">{user?.fullName ?? "Guest"}</h2>
             <p className="text-indigo-200 font-bold text-sm mb-10">Event Enthusiast</p>
             <div className="grid grid-cols-3 gap-4 mb-10">
               {profileStats.map((stat, i) => (
@@ -56,8 +59,8 @@ export default function Profile() {
           <section className={`p-10 rounded-[40px] shadow-sm border ${darkMode ? 'bg-[#1E0B3B] border-white/5' : 'bg-white border-slate-100'}`}>
             <h3 className="text-lg font-black mb-8 flex items-center gap-3">Personal Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="flex items-center gap-5"><div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600"><Mail size={24} /></div><div><p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Email Address</p><p className="font-bold">john.doe@example.com</p></div></div>
-              <div className="flex items-center gap-5"><div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600"><Phone size={24} /></div><div><p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Phone Number</p><p className="font-bold">+1 (555) 123-4567</p></div></div>
+              <div className="flex items-center gap-5"><div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600"><Mail size={24} /></div><div><p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Email Address</p><p className="font-bold">{user?.email ?? "—"}</p></div></div>
+              <div className="flex items-center gap-5"><div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600"><Phone size={24} /></div><div><p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Phone Number</p><p className="font-bold">{user?.phone || "—"}</p></div></div>
               <div className="flex items-center gap-5 md:col-span-2"><div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600"><MapPin size={24} /></div><div><p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Location</p><p className="font-bold">San Francisco, California, USA</p></div></div>
             </div>
           </section>

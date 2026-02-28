@@ -1,7 +1,8 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import React, { createContext, useEffect, useState } from 'react';
+import { AuthProvider } from './context/AuthContext';
 import EventsPage from './pages/Eventspage';
-import EventDetails from './pages/EventDetails'; 
+import EventDetails from './pages/EventDetails';
 import CreateEvent from './pages/CreateEvent';
 import MyEvents from './pages/MyEvents';
 import LoginPage from './pages/Login';
@@ -55,19 +56,21 @@ const AppLayout = ({ children }) => {
 // 4. UPDATED APP COMPONENT
 function App() {
   return (
-    <ThemeProvider>
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<EventsPage />} />
-          <Route path="/event/:id" element={<EventDetails />} />
-          <Route path="/create-event" element={<CreateEvent />} />
-          <Route path="/my-events" element={<MyEvents />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-        </Routes>
-      </AppLayout>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <AppLayout>
+          <Routes>
+            <Route path="/" element={<EventsPage />} />
+            <Route path="/event/:id" element={<EventDetails />} />
+            <Route path="/create-event" element={<CreateEvent />} />
+            <Route path="/my-events" element={<MyEvents />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Routes>
+        </AppLayout>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

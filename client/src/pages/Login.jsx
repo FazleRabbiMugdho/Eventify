@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import bgImage from "../assets/bg.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -12,113 +16,121 @@ export default function LoginPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    console.log("Login:", form);
+    login({ fullName: form.email.split("@")[0], email: form.email, phone: "" });
+    navigate("/");
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      {/* Glassmorphism card */}
+      <div
+        className="w-full max-w-md rounded-3xl px-10 py-12"
+        style={{
+          background: "rgba(255, 255, 255, 0.08)",
+          backdropFilter: "blur(18px)",
+          WebkitBackdropFilter: "blur(18px)",
+          border: "1px solid rgba(255, 255, 255, 0.18)",
+          boxShadow: "0 8px 48px rgba(0, 0, 0, 0.35)",
+        }}
+      >
+        <h1 className="text-4xl font-bold text-white text-center mb-8 tracking-wide">
+          Welcome Back❤️
+        </h1>
 
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg mb-4 cursor-pointer"
-            style={{ background: "linear-gradient(135deg, #7c3aed, #9333ea)" }}
-            onClick={() => navigate("/")}
-          >
-            📅
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+          {/* Email */}
+          <div className="relative">
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Email"
+              required
+              className="w-full px-5 py-4 pr-12 rounded-full text-white placeholder-purple-200 text-sm outline-none transition-all"
+              style={{
+                background: "rgba(255, 255, 255, 0.12)",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+              }}
+            />
+            <span className="absolute right-5 top-1/2 -translate-y-1/2 text-purple-200 text-lg">👤</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-          <p className="text-sm text-gray-500 mt-1">Sign in to your Eventify account</p>
-        </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-
-            {/* Email */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Email Address</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">✉️</span>
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition-all bg-gray-50 focus:bg-white"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-gray-700">Password</label>
-                <a href="#" className="text-xs text-violet-600 hover:text-violet-700 font-medium">
-                  Forgot password?
-                </a>
-              </div>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔒</span>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                  className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition-all bg-gray-50 focus:bg-white"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
-                >
-                  {showPassword ? "🙈" : "👁️"}
-                </button>
-              </div>
-            </div>
-
-            {/* Submit */}
+          {/* Password */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Password"
+              required
+              className="w-full px-5 py-4 pr-12 rounded-full text-white placeholder-purple-200 text-sm outline-none transition-all"
+              style={{
+                background: "rgba(255, 255, 255, 0.12)",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+              }}
+            />
             <button
-              type="submit"
-              className="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90 active:scale-95 mt-1"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #9333ea)" }}
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-purple-200 text-lg"
             >
-              Sign In
+              {showPassword ? "🙈" : "🔒"}
             </button>
-
-          </form>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400 font-medium">OR</span>
-            <div className="flex-1 h-px bg-gray-200" />
           </div>
 
-          {/* Register link */}
-          <p className="text-center text-sm text-gray-500">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-violet-600 hover:text-violet-700 font-semibold">
-              Register
-            </Link>
-          </p>
-        </div>
+          {/* Remember me + Forgot password */}
+          <div className="flex items-center justify-between px-1">
+            <label className="flex items-center gap-2 text-purple-100 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 accent-purple-400 cursor-pointer"
+              />
+              Remember me
+            </label>
+            <a href="#" className="text-purple-100 text-sm hover:text-white transition-colors">
+              Forgot password?
+            </a>
+          </div>
 
-        {/* Back to home */}
-        <p className="text-center text-xs text-gray-400 mt-6">
-          <span
-            className="cursor-pointer hover:text-violet-600 transition-colors"
-            onClick={() => navigate("/")}
+          {/* Submit */}
+          <button
+            type="submit"
+            className="w-full py-4 rounded-full font-bold text-purple-900 text-base transition-all hover:opacity-90 active:scale-95 mt-1"
+            style={{ background: "linear-gradient(90deg, #ffffff, #e9d5ff)" }}
           >
-            ← Back to EventHub
-          </span>
+            Login
+          </button>
+
+        </form>
+
+        <p className="text-center text-purple-100 text-sm mt-7">
+          Don't have an account?{" "}
+          <Link to="/register" className="font-bold text-white hover:text-purple-200 transition-colors">
+            Register
+          </Link>
         </p>
 
+        <p className="text-center mt-4">
+          <span
+            className="text-xs text-purple-300 cursor-pointer hover:text-white transition-colors"
+            onClick={() => navigate("/")}
+          >
+            ← Back to Eventify
+          </span>
+        </p>
       </div>
     </div>
   );
