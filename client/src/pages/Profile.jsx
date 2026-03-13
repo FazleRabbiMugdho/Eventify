@@ -11,6 +11,7 @@ export default function Profile() {
 
   const navigate = useNavigate();
   const { darkMode, setDarkMode } = useContext(ThemeContext);
+  const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const [user, setUser] = useState(null);

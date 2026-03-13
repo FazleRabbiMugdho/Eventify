@@ -149,11 +149,11 @@ export default function RegisterPage() {
             </div>
 
             <button
-              type="submit"
-              className="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90 active:scale-95 mt-1"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #9333ea)" }}
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-purple-200 text-lg"
             >
-              Create Account
+              {showPassword ? "🙈" : "🔒"}
             </button>
           </form>
         </div>

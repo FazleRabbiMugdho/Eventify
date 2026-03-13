@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../App";
+import { useAuth } from "../context/AuthContext";
 import { Calendar, MapPin, Users, DollarSign, Eye, TrendingUp, ChevronLeft, Moon, Sun, Bell, LayoutDashboard, PlusSquare, MoreVertical, Filter, ArrowUpRight } from "lucide-react";
 import img1 from '../assets/1.jpg';
 import img2 from '../assets/2.jpg';
@@ -22,16 +23,28 @@ const HOSTED_EVENTS = [
 export default function MyEvents() {
   const navigate = useNavigate();
   const { darkMode, setDarkMode } = useContext(ThemeContext);
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("hosting");
 
   return (
     <div className={`flex min-h-screen w-full transition-colors duration-500 font-sans ${darkMode ? 'bg-[#0F0121] text-white' : 'bg-[#F8FAFC] text-slate-900'}`}>
       <style>{`.no-scrollbar::-webkit-scrollbar { display: none; } .ripple-btn { position: relative; overflow: hidden; transform: translate3d(0, 0, 0); } .ripple-btn:after { content: ""; display: block; position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; background-image: radial-gradient(circle, #fff 10%, transparent 10.01%); background-repeat: no-repeat; background-position: 50%; transform: scale(10, 10); opacity: 0; transition: transform .5s, opacity 1s; } .ripple-btn:active:after { transform: scale(0, 0); opacity: .3; transition: 0s; }`}</style>
-      
+
       <aside className={`w-72 border-r transition-all duration-500 flex flex-col sticky top-0 h-screen z-50 shrink-0 ${darkMode ? 'bg-[#0F0121] border-white/5' : 'bg-white border-slate-100'}`}>
         <div className="p-8 flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/20"><TrendingUp size={26} strokeWidth={2.5} /></div>
-          <span className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-indigo-600'}`}>Eventify</span>
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/20">
+            <TrendingUp size={26} strokeWidth={2.5} />
+          </div>
+
+          {/* wrap heading/subheading in a column */}
+          <div className="flex flex-col">
+            <span className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-indigo-600'}`}>
+              Eventify
+            </span>
+            <span className={`text-xs font-bold ${darkMode ? 'text-slate-400' : 'text-indigo-400'}`}>
+              Ticketing & Management
+            </span>
+          </div>
         </div>
         <nav className="flex-1 px-6 space-y-3 mt-8">
           <button onClick={() => navigate('/')} className={`w-full flex items-center gap-4 px-5 py-4 rounded-[22px] font-bold text-[15px] transition-all duration-300 ripple-btn ${darkMode ? "text-slate-400 hover:text-white hover:bg-white/5" : "text-slate-500 hover:bg-slate-50"}`}><LayoutDashboard size={20} /> Explore</button>
@@ -42,13 +55,44 @@ export default function MyEvents() {
 
       <main className="flex-1 min-w-0 px-12 py-10 overflow-y-auto">
         <header className="flex items-center justify-between mb-12">
-          <div><h1 className="text-5xl font-black tracking-tighter">My Events</h1><p className="text-slate-500 font-bold mt-2">Manage and track your hosting performance</p></div>
+          <div>
+            <h1 className="text-5xl font-black tracking-tighter">My Events</h1>
+            <p className="text-slate-500 font-bold mt-2">Manage and track your hosting performance</p>
+          </div>
+
           <div className="flex items-center gap-5">
-            <button onClick={() => setDarkMode(!darkMode)} className={`p-4 rounded-[22px] ripple-btn shadow-sm transition-all ${darkMode ? 'bg-[#1E0B3B] text-yellow-400' : 'bg-white border border-slate-100 text-slate-600'}`}>{darkMode ? <Sun size={24} /> : <Moon size={24} />}</button>
-            <div className={`flex items-center gap-5 ml-4 pl-6 border-l-2 ${darkMode ? 'border-white/5' : 'border-slate-100'}`}>
-              <div className="text-right hidden sm:block"><p className="text-base font-black">Alex Johnson</p><p className="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Premium Member</p></div>
-              <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg font-black shadow-xl shadow-indigo-600/30">AJ</div>
-            </div>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`p-4 rounded-[22px] ripple-btn shadow-sm transition-all ${darkMode ? 'bg-[#1E0B3B] text-yellow-400' : 'bg-white border border-slate-100 text-slate-600'}`}
+            >
+              {darkMode ? <Sun size={24} /> : <Moon size={24} />}
+            </button>
+
+            {user ? (
+              <div
+                onClick={() => navigate('/profile')}
+                className={`flex items-center gap-5 ml-4 pl-6 border-l-2 cursor-pointer ${darkMode ? 'border-white/5' : 'border-slate-100'}`}
+              >
+                <div className="text-right hidden sm:block">
+                  <p className={`text-base font-black ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                    {user.fullName}
+                  </p>
+                  <p className="text-[11px] font-black text-indigo-500 uppercase tracking-widest">
+                    Premium Member
+                  </p>
+                </div>
+                <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg font-black shadow-xl shadow-indigo-600/30">
+                  {user.fullName.slice(0, 2).toUpperCase()}
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => navigate('/login')}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
+              >
+                Login
+              </button>
+            )}
           </div>
         </header>
 

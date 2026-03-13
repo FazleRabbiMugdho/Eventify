@@ -4,6 +4,7 @@ import ApiClient from "../api"; // import your ApiClient
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -117,11 +118,11 @@ export default function LoginPage() {
 
             {/* Submit */}
             <button
-              type="submit"
-              className="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90 active:scale-95 mt-1"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #9333ea)" }}
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-purple-200 text-lg"
             >
-              Sign In
+              {showPassword ? "🙈" : "🔒"}
             </button>
           </form>
 
@@ -147,10 +148,10 @@ export default function LoginPage() {
         {/* Back Link */}
         <p className="text-center text-xs text-gray-400 mt-6">
           <span
-            className="cursor-pointer hover:text-violet-600 transition-colors"
+            className="text-xs text-purple-300 cursor-pointer hover:text-white transition-colors"
             onClick={() => navigate("/")}
           >
-            ← Back to EventHub
+            ← Back to Eventify
           </span>
         </p>
       </div>
