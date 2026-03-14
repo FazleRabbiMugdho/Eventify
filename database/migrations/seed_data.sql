@@ -1,16 +1,28 @@
-INSERT INTO sessions (name, createdAt, duration) VALUES 
-('Math Class', '2024-12-18 09:00:00', 60),
-('Science Lecture', '2024-12-18 11:00:00', 90),
-('History Discussion', '2024-12-18 14:00:00', 120),
-('Art Workshop', '2024-12-18 16:00:00', 45),
-('Music Practice', '2024-12-18 18:00:00', 30);
+INSERT INTO users (user_name, email, phone,password_hash, role_id) VALUES
+('John Admin', 'admin@eventify.com', 01718068346,'hash_secure_123', 1),
+('Alice Smith', 'alice@gmail.com',01718068356, 'password_hash_abc', 2);
 
+INSERT INTO categories (category_name) VALUES
+('Music'),
+('Workshop'),
+('Tech Conference');
 
-INSERT INTO attendances (session_id, roll, created_at, updated_at) VALUES
-(1, 'A001', '2024-12-18 09:10:00', '2024-12-18 09:30:00'),
-(1, 'A002', '2024-12-18 09:15:00', '2024-12-18 09:40:00'),
-(2, 'B001', '2024-12-18 11:20:00', '2024-12-18 11:50:00'),
-(2, 'B002', '2024-12-18 11:25:00', '2024-12-18 11:55:00'),
-(3, 'C001', '2024-12-18 14:10:00', '2024-12-18 14:40:00'),
-(4, 'D001', '2024-12-18 16:05:00', '2024-12-18 16:30:00'),
-(5, 'E001', '2024-12-18 18:05:00', '2024-12-18 18:25:00');
+INSERT INTO venue (name, location, total_capacity) VALUES
+('Grand Ballroom', '123 Main St, New York', 500),
+('Tech Hub Plaza', '456 Innovation Way, San Francisco', 200);
+
+INSERT INTO events (event_name, description, start_date_time, venue_id, category_id, user_id) VALUES
+('Rock Concert 2026', 'A night of classic rock and roll.', '2026-05-20 19:00', 1, 1, 1);
+
+INSERT INTO ticket (ticket_type, price, quantity, event_id) VALUES
+('VIP', 150.00, 50, 1),
+('Regular', 50.00, 450, 1);
+
+INSERT INTO bookings (booking_date, user_id, ticket_id, payment_id) VALUES
+('2026-03-05 10:30', 2, 2, 1);
+
+INSERT INTO payment (pay_amount, payment_method, booking_id) VALUES
+(50.00, 'Credit Card', 1);
+
+INSERT INTO reviews (rating, comment, review_date, event_id, user_id) VALUES
+(5, 'Amazing performance!', '2026-05-21', 1, 2);

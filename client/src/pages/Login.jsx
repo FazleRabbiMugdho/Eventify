@@ -1,25 +1,39 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import ApiClient from "../api"; // import your ApiClient
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+
+  const api = new ApiClient();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    console.log("Login:", form);
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const response = await api.login(form.email, form.password);
+
+    if (response && response.token) {
+      localStorage.setItem("token", response.token);
+      navigate("/"); // go to EventsPage after login
+    }
+
+  } catch (err) {
+    setError(err.message || "Login failed");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div
@@ -30,18 +44,23 @@ export default function LoginPage() {
             📅
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-          <p className="text-sm text-gray-500 mt-1">Sign in to your Eventify account</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Sign in to your Eventify account
+          </p>
         </div>
 
         {/* Card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-
             {/* Email */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Email Address</label>
+              <label className="text-sm font-semibold text-gray-700">
+                Email Address
+              </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">✉️</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                  ✉️
+                </span>
                 <input
                   type="email"
                   name="email"
@@ -57,13 +76,20 @@ export default function LoginPage() {
             {/* Password */}
             <div className="flex flex-col gap-1.5">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-gray-700">Password</label>
-                <a href="#" className="text-xs text-violet-600 hover:text-violet-700 font-medium">
+                <label className="text-sm font-semibold text-gray-700">
+                  Password
+                </label>
+                <a
+                  href="#"
+                  className="text-xs text-violet-600 hover:text-violet-700 font-medium"
+                >
                   Forgot password?
                 </a>
               </div>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔒</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                  🔒
+                </span>
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -82,6 +108,13 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
+                ⚠️ {error}
+              </div>
+            )}
+
             {/* Submit */}
             <button
               type="submit"
@@ -90,26 +123,28 @@ export default function LoginPage() {
             >
               Sign In
             </button>
-
           </form>
 
-          {/* Divider */}
+          {/* OR Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-gray-200" />
             <span className="text-xs text-gray-400 font-medium">OR</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
-          {/* Register link */}
+          {/* Register Link */}
           <p className="text-center text-sm text-gray-500">
             Don't have an account?{" "}
-            <Link to="/register" className="text-violet-600 hover:text-violet-700 font-semibold">
+            <Link
+              to="/register"
+              className="text-violet-600 hover:text-violet-700 font-semibold"
+            >
               Register
             </Link>
           </p>
         </div>
 
-        {/* Back to home */}
+        {/* Back Link */}
         <p className="text-center text-xs text-gray-400 mt-6">
           <span
             className="cursor-pointer hover:text-violet-600 transition-colors"
@@ -118,7 +153,6 @@ export default function LoginPage() {
             ← Back to EventHub
           </span>
         </p>
-
       </div>
     </div>
   );
