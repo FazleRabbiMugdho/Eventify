@@ -1,6 +1,7 @@
 import React, { useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ThemeContext } from "../App"; 
+import { ThemeContext } from "../App";
+import { useAuth } from "../context/AuthContext";
 import { ChevronLeft, UploadCloud, CalendarDays, Clock3, LayoutDashboard, Calendar, PlusSquare, TrendingUp, MapPin, DollarSign, Type, AlignLeft, PartyPopper, Zap, X } from "lucide-react";
 
 const CATEGORIES = ["Music", "Tech", "Business", "Sports", "Art", "Food", "Wellness", "Comedy", "Workshop"];
@@ -8,6 +9,7 @@ const CATEGORIES = ["Music", "Tech", "Business", "Sports", "Art", "Food", "Welln
 export default function CreateEvent() {
   const navigate = useNavigate();
   const { darkMode } = useContext(ThemeContext);
+  const { user } = useAuth();
   const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({ title: "", category: "", date: "", time: "", location: "", price: "", description: "" });
   const [coverImage, setCoverImage] = useState(null);
@@ -59,11 +61,20 @@ export default function CreateEvent() {
   return (
     <div className={`flex min-h-screen w-full transition-colors duration-500 font-sans ${darkMode ? 'bg-[#0F0121] text-white' : 'bg-[#F8FAFC] text-slate-900'}`}>
       <style>{`.no-scrollbar::-webkit-scrollbar { display: none; } .ripple-btn { position: relative; overflow: hidden; transform: translate3d(0, 0, 0); } .ripple-btn:after { content: ""; display: block; position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; background-image: radial-gradient(circle, #fff 10%, transparent 10.01%); background-repeat: no-repeat; background-position: 50%; transform: scale(10, 10); opacity: 0; transition: transform .5s, opacity 1s; } .ripple-btn:active:after { transform: scale(0, 0); opacity: .3; transition: 0s; }`}</style>
-      
+
       <aside className={`w-72 border-r transition-all duration-500 flex flex-col sticky top-0 h-screen z-50 shrink-0 ${darkMode ? 'bg-[#0F0121] border-white/5' : 'bg-white border-slate-100'}`}>
         <div className="p-8 flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/20"><TrendingUp size={26} strokeWidth={2.5} /></div>
-          <span className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-indigo-600'}`}>Eventify</span>
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/20">
+            <TrendingUp size={26} strokeWidth={2.5} />
+          </div>
+          <div className="flex flex-col">
+            <span className={`text-2xl font-black tracking-tighter ${darkMode ? 'text-white' : 'text-indigo-600'}`}>
+              Eventify
+            </span>
+            <span className={`text-xs font-bold ${darkMode ? 'text-slate-400' : 'text-indigo-400'}`}>
+              Ticketing & Management
+            </span>
+          </div>
         </div>
         <nav className="flex-1 px-6 space-y-3 mt-8">
           <button onClick={() => navigate('/')} className={`w-full flex items-center gap-4 px-5 py-4 rounded-[22px] font-bold text-[15px] transition-all duration-300 ripple-btn ${darkMode ? "text-slate-400 hover:text-white hover:bg-white/5" : "text-slate-500 hover:bg-slate-50"}`}><LayoutDashboard size={20} /> Explore</button>
@@ -77,10 +88,32 @@ export default function CreateEvent() {
           <button onClick={() => navigate('/')} className={`flex items-center gap-3 px-8 py-4 rounded-[22px] font-black text-sm shadow-sm transition-all ripple-btn ${darkMode ? 'bg-white/5 text-white border border-white/10' : 'bg-white text-slate-600 border border-slate-100'}`}>
             <ChevronLeft size={18} strokeWidth={2.5} /> Back
           </button>
-          <div className={`flex items-center gap-5 ml-4 pr-6 border-l-2 ${darkMode ? 'border-white/5' : 'border-slate-100'}`}>
-            <div className="text-right hidden sm:block"><p className={`text-base font-black ${darkMode ? 'text-white' : 'text-slate-900'}`}>Alex Johnson</p><p className="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Premium Member</p></div>
-            <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg font-black shadow-xl shadow-indigo-600/30">AJ</div>
-          </div>
+
+          {user ? (
+            <div
+              className={`flex items-center gap-5 ml-4 pr-6 border-l-2 ${darkMode ? 'border-white/5' : 'border-slate-100'}`}
+              onClick={() => navigate('/profile')}
+            >
+              <div className="text-right hidden sm:block">
+                <p className={`text-base font-black ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {user.fullName}
+                </p>
+                <p className="text-[11px] font-black text-indigo-500 uppercase tracking-widest">
+                  Premium Member
+                </p>
+              </div>
+              <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg font-black shadow-xl shadow-indigo-600/30">
+                {user.fullName.slice(0, 2).toUpperCase()}
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate('/login')}
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
+            >
+              Login
+            </button>
+          )}
         </header>
 
         <div className="max-w-[1100px] mx-auto pb-32">
@@ -92,14 +125,14 @@ export default function CreateEvent() {
                   {imagePreview ? (
                     <><img src={imagePreview} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="Preview" /><div className="absolute inset-0 bg-gradient-to-t from-[#0F0121]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" /><button onClick={removeImage} className="absolute top-6 right-6 w-12 h-12 bg-rose-500 text-white rounded-2xl flex items-center justify-center shadow-xl ripple-btn opacity-0 group-hover:opacity-100 transition-opacity z-10"><X size={20} strokeWidth={3} /></button></>
                   ) : (
-                    <><div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-2xl transition-colors ${darkMode ? 'bg-[#1E0B3B]' : 'bg-white'}`}><UploadCloud size={44} className="text-indigo-500" strokeWidth={1.5}/></div><h4 className="text-2xl font-black tracking-tight mb-2">Upload event cover image</h4><p className="text-sm font-bold text-slate-500">PNG, JPG up to 10MB</p></>
+                    <><div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-2xl transition-colors ${darkMode ? 'bg-[#1E0B3B]' : 'bg-white'}`}><UploadCloud size={44} className="text-indigo-500" strokeWidth={1.5} /></div><h4 className="text-2xl font-black tracking-tight mb-2">Upload event cover image</h4><p className="text-sm font-bold text-slate-500">PNG, JPG up to 10MB</p></>
                   )}
                   <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/png, image/jpeg" className="hidden" />
                 </div>
               </InputWrapper>
             </div>
             <div className={`p-12 rounded-[56px] shadow-3xl ${darkMode ? 'bg-[#1E0B3B]' : 'bg-white border border-slate-50'}`}>
-              <h3 className="text-3xl font-black mb-12 tracking-tight flex items-center gap-4"><AlignLeft className="text-indigo-500"/> Core Details</h3>
+              <h3 className="text-3xl font-black mb-12 tracking-tight flex items-center gap-4"><AlignLeft className="text-indigo-500" /> Core Details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
                 <div className="sm:col-span-2"><InputWrapper label="Event Title" icon={<Type />} required><input type="text" name="title" value={formData.title} onChange={handleInputChange} placeholder="Enter a catchy event name" className={inputClasses} required /></InputWrapper></div>
                 <InputWrapper label="Category" icon={<PartyPopper />} required><select name="category" value={formData.category} onChange={handleInputChange} className={`${inputClasses} appearance-none`} required><option value="" disabled>Select event category</option>{CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}</select></InputWrapper>
