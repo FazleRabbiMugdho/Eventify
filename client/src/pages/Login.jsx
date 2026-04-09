@@ -62,12 +62,14 @@ export default function LoginPage() {
             user_name: profile.user_name || "",
             email: profile.email || "",
             phone: profile.phone || "",
+            profile_picture: profile.profile_picture || "",
           });
         } else {
           login({
             user_name: response.user_name || "",
             email: response.email || "",
             phone: response.phone || "",
+            profile_picture: response.profile_picture || "",
           });
         }
 

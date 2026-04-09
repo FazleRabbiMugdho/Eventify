@@ -62,6 +62,13 @@ A comprehensive code review of the **Eventify** project covering **frontend**, *
 | 7 | **Leftover sessions/attendance API methods** | [api.ts](file:///d:/CSE-3100%20sd%20Eventify/Eventify/client/src/api.ts#L163-L209) has session/attendance methods with no corresponding backend endpoints |
 | 8 | **API key in URL query string** | Gemini API key is passed via query string, which gets logged in server access logs |
 
+### 3. Google Auth Integration
+- Updated `GoogleController.php` to automatically fetch and save the user's Google avatar URL in the `profile_picture` column upon registration.
+
+### 4. UI/UX Persistence Fixes
+- Fixed a bug in `Login.jsx` and `AuthCallback.jsx` where the `profile_picture` field was being stripped out of the local user state during the login process.
+- Updated the main navigation bar in all major pages (`EventsPage`, `MyEvents`, `EventDetails`, `CreateEvent`) to dynamically display the user's profile picture or fall back to initials if none exists.
+
 ### Recommendations
 - Add Laravel **Policies** or **Gates** for authorization
 - Use **API Resources** to control the JSON response shape
