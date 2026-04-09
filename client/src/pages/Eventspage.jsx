@@ -527,7 +527,7 @@ function MobileBottomNav({ darkMode, navigate, onNotifPress, onProfilePress, unr
 
 // ─── Mobile Top Bar ───────────────────────────────────────────────────────────
 
-function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, setIsSearchActive }) {
+function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, setIsSearchActive, user, navigate }) {
   return (
     <div className="md:hidden mb-6">
       {/* Brand row */}
@@ -542,6 +542,14 @@ function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, s
             </span>
           </div>
         </div>
+        {!user && (
+          <button
+            onClick={() => navigate("/login")}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
+          >
+            Log In
+          </button>
+        )}
       </div>
 
       {/* Search */}
@@ -1695,6 +1703,8 @@ export default function Eventpage() {
             setSearchQuery={setSearchQuery}
             isSearchActive={isSearchActive}
             setIsSearchActive={setIsSearchActive}
+            user={user}
+            navigate={navigate}
           />
         </FadeIn>
 

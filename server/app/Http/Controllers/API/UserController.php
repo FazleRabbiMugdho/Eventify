@@ -51,8 +51,14 @@ class UserController extends Controller
     // Update a user
     public function update(Request $request, $id)
     {
+        // OWASP- Broken Access Control (IDOR Prevention)
+        if ($id != auth()->id()) {
+            return response()->json(['message' => 'Unauthorized action'], 403);
+        }
+
         $user = User::find($id);
-        if (!$user) return response()->json(['message' => 'User not found'], 404);
+        if (!$user)
+            return response()->json(['message' => 'User not found'], 404);
 
         $user->update($request->only(['user_name', 'full_name', 'email', 'phone', 'role_id']));
         if ($request->password_hash) {
@@ -66,8 +72,14 @@ class UserController extends Controller
     // Delete a user
     public function destroy($id)
     {
+        // OWASP Broken Access Control (IDOR Prevention)
+        if ($id != auth()->id()) {
+            return response()->json(['message' => 'Unauthorized action'], 403);
+        }
+
         $user = User::find($id);
-        if (!$user) return response()->json(['message' => 'User not found'], 404);
+        if (!$user)
+            return response()->json(['message' => 'User not found'], 404);
 
         $user->delete();
         return response()->json(['message' => 'User deleted successfully']);
@@ -85,7 +97,7 @@ class UserController extends Controller
             ->where('user_id', $userId)
             ->get();
 
-        $attending = \App\Models\Event::with(['category', 'venue', 'tickets'])
+        $attending = \App\Models\Event::with(['category', 'venue', 'tickets.bookings'])
             ->whereHas('tickets.bookings', function ($q) use ($userId) {
                 $q->where('user_id', $userId);
             })
