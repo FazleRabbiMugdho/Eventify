@@ -37,12 +37,48 @@ class UserController extends Controller
             'password_hash' => 'required|string|min:6',
         ]);
 
+        $profilePictureUrl = null;
+
+        if (!empty($request->profile_picture)) {
+            $imageData = $request->profile_picture;
+            
+            if (!preg_match('/^data:image\/(\w+);base64,/', $imageData) && !str_starts_with($imageData, 'http')) {
+                $imageData = "data:image/png;base64," . $imageData;
+            }
+
+            if (str_starts_with($imageData, 'http')) {
+                $profilePictureUrl = $imageData;
+            } else {
+                $timestamp = time();
+                $apiSecret = env('CLOUDINARY_API_SECRET');
+                $signature = sha1("timestamp={$timestamp}{$apiSecret}");
+
+                try {
+                    $response = \Illuminate\Support\Facades\Http::post("https://api.cloudinary.com/v1_1/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload", [
+                        'file' => $imageData,
+                        'api_key' => env('CLOUDINARY_API_KEY'),
+                        'timestamp' => $timestamp,
+                        'signature' => $signature,
+                    ]);
+
+                    if ($response->successful()) {
+                        $profilePictureUrl = $response->json('secure_url');
+                    } else {
+                        \Log::error("Cloudinary Upload Failed in User Store", $response->json());
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Cloudinary Exception in User Store", ['msg' => $e->getMessage()]);
+                }
+            }
+        }
+
         $user = User::create([
             'user_name' => $request->user_name,
             'email' => $request->email,
             'phone' => $request->phone,
             'password_hash' => Hash::make($request->password_hash),
             'role_id' => 1,
+            'profile_picture' => $profilePictureUrl
         ]);
 
         return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
@@ -63,8 +99,43 @@ class UserController extends Controller
         $user->update($request->only(['user_name', 'full_name', 'email', 'phone', 'role_id']));
         if ($request->password_hash) {
             $user->password_hash = Hash::make($request->password_hash);
-            $user->save();
         }
+
+        // Handle profile picture update
+        if (!empty($request->profile_picture)) {
+            $imageData = $request->profile_picture;
+            
+            if (!preg_match('/^data:image\/(\w+);base64,/', $imageData) && !str_starts_with($imageData, 'http')) {
+                $imageData = "data:image/png;base64," . $imageData;
+            }
+
+            if (str_starts_with($imageData, 'http')) {
+                $user->profile_picture = $imageData;
+            } else {
+                $timestamp = time();
+                $apiSecret = env('CLOUDINARY_API_SECRET');
+                $signature = sha1("timestamp={$timestamp}{$apiSecret}");
+
+                try {
+                    $response = \Illuminate\Support\Facades\Http::post("https://api.cloudinary.com/v1_1/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload", [
+                        'file' => $imageData,
+                        'api_key' => env('CLOUDINARY_API_KEY'),
+                        'timestamp' => $timestamp,
+                        'signature' => $signature,
+                    ]);
+
+                    if ($response->successful()) {
+                        $user->profile_picture = $response->json('secure_url');
+                    } else {
+                        \Log::error("Cloudinary Upload Failed in User Update", $response->json());
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Cloudinary Exception in User Update", ['msg' => $e->getMessage()]);
+                }
+            }
+        }
+
+        $user->save();
 
         return response()->json(['message' => 'User updated successfully', 'user' => $user]);
     }

@@ -319,8 +319,12 @@ export default function EventDetails() {
           </button>
           {user ? (
             <div onClick={() => navigate("/profile")} className="cursor-pointer group">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-xs sm:text-sm font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform">
-                {userInitials}
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl ${user.profile_picture ? "" : "bg-indigo-600"} overflow-hidden flex items-center justify-center text-white text-xs sm:text-sm font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform`}>
+                {user.profile_picture ? (
+                  <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  userInitials
+                )}
               </div>
             </div>
           ) : (

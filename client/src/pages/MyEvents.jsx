@@ -227,8 +227,12 @@ export default function MyEvents() {
             </div>
             {user ? (
               <div onClick={() => navigate("/profile")} className="cursor-pointer group ml-2">
-                <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-sm sm:text-lg font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform">
-                  {userInitials}
+                <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-2xl ${user.profile_picture ? "" : "bg-indigo-600"} overflow-hidden flex items-center justify-center text-white text-sm sm:text-lg font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform`}>
+                  {user.profile_picture ? (
+                    <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    userInitials
+                  )}
                 </div>
               </div>
             ) : (
