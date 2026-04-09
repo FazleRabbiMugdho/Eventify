@@ -16,12 +16,17 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
-        $booking = Booking::create($request->all());
+        // OWASP Mass Assignment Prevention & A01:2021 Broken Access Control
+        // Force the booking's user_id to be the currently authenticated user's ID
+        $data = $request->only(['ticket_id', 'booking_date', 'payment_id']);
+        $data['user_id'] = auth()->id();
+
+        $booking = Booking::create($data);
 
         return response()->json([
-            'message'=>'Booking Successful',
-            'booking'=>$booking
-        ],201);
+            'message' => 'Booking Successful',
+            'booking' => $booking
+        ], 201);
     }
 
     public function show($id)
@@ -31,10 +36,21 @@ class BookingController extends Controller
 
     public function destroy($id)
     {
-        Booking::destroy($id);
+        $booking = Booking::find($id);
+
+        if (!$booking) {
+            return response()->json(['message' => 'Booking not found'], 404);
+        }
+
+        // OWASP Broken Access Control (IDOR Prevention)
+        if ($booking->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized action'], 403);
+        }
+
+        $booking->delete();
 
         return response()->json([
-            'message'=>'Booking Cancelled'
+            'message' => 'Booking Cancelled'
         ]);
     }
 }

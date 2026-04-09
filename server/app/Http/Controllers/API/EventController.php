@@ -60,7 +60,7 @@ class EventController extends Controller
         // Handle image upload to Cloudinary
         if (!empty($validatedData['image_base64'])) {
             $imageData = $validatedData['image_base64'];
-            
+
             // If the incoming data is not a data URI, let's format it as one before sending to Cloudinary
             if (!preg_match('/^data:image\/(\w+);base64,/', $imageData) && !str_starts_with($imageData, 'http')) {
                 $imageData = "data:image/png;base64," . $imageData;
@@ -117,7 +117,25 @@ class EventController extends Controller
     public function update(Request $request, $id)
     {
         $event = Event::find($id);
-        $event->update($request->all());
+
+        if (!$event) {
+            return response()->json(['message' => 'Event not found'], 404);
+        }
+
+
+        if ($event->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized action'], 403);
+        }
+
+
+        $event->update($request->only([
+            'event_name',
+            'description',
+            'start_date_time',
+            'venue_id',
+            'category_id',
+            'image_url'
+        ]));
 
         return response()->json([
             'message' => 'Event Updated'
@@ -126,7 +144,18 @@ class EventController extends Controller
 
     public function destroy($id)
     {
-        Event::destroy($id);
+        $event = Event::find($id);
+
+        if (!$event) {
+            return response()->json(['message' => 'Event not found'], 404);
+        }
+
+        // OWASP- Broken Access Control (IDOR Prevention)
+        if ($event->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized action'], 403);
+        }
+
+        $event->delete();
 
         return response()->json([
             'message' => 'Event Deleted'
