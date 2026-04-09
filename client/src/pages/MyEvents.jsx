@@ -5,16 +5,16 @@ import { AuthContext } from "../context/AuthContext";
 import {
   Calendar, MapPin, Users, DollarSign, Eye,
   TrendingUp, LayoutDashboard, PlusSquare, User,
-  Bell, ChevronLeft,
+  Bell, X,
 } from "lucide-react";
 import img1 from "../assets/1.jpg";
-import img2 from "../assets/2.jpg";
-import img3 from "../assets/3.jpg";
 import ApiClient from "../api";
 import {
-  AnimationStyles, FadeIn, FadeInGroup, InViewFade,
+  AnimationStyles, FadeIn, InViewFade,
   CountUp, SkeletonStatCard, SkeletonHostedCard, usePageLoad,
 } from "../components/ui";
+
+const api = new ApiClient();
 
 // ─── Logo SVG ─────────────────────────────────────────────────────────────────
 
@@ -96,10 +96,6 @@ function MobileBottomNav({ darkMode, navigate }) {
         <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-[20px] flex items-center justify-center shadow-xl shadow-indigo-600/40 border-4 border-white dark:border-[#0F0121]"><PlusSquare size={22} className="text-white" /></div>
         <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider mt-1">Create</span>
       </button>
-      <button onClick={() => navigate("/")} className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><Bell size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Alerts</span>
-      </button>
       <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-1 px-3 py-1">
         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><User size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
         <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Profile</span>
@@ -112,7 +108,7 @@ function MobileBottomNav({ darkMode, navigate }) {
 
 export default function MyEvents() {
   const navigate = useNavigate();
-  const { darkMode, setDarkMode } = useContext(ThemeContext);
+  const { darkMode } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("hosting");
   
@@ -120,23 +116,38 @@ export default function MyEvents() {
   const [attendingEvents, setAttendingEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = async () => {
     if (!user) {
       setIsLoading(false);
       return;
     }
-    const fetchData = async () => {
-      setIsLoading(true);
-      const api = new ApiClient();
+    setIsLoading(true);
+    try {
       const res = await api.getMyEvents();
       if (res) {
         setHostingEvents(res.hosting || []);
         setAttendingEvents(res.attending || []);
       }
+    } catch (err) {
+      console.error("Failed to fetch events:", err);
+    } finally {
       setIsLoading(false);
-    };
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, [user]);
+
+  const handleDelete = async (eventId) => {
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    try {
+      await api.client.delete(`/api/events/${eventId}`);
+      fetchData(); // Refresh data
+    } catch (err) {
+      alert("Failed to delete event.");
+    }
+  };
 
   const loaded = usePageLoad(500) && !isLoading;
 
@@ -154,20 +165,27 @@ export default function MyEvents() {
   const formatEvent = (evt) => {
     const attendeesCount = evt.tickets?.reduce((acc, t) => acc + (t.bookings?.length || 0), 0) || 0;
     const revenueSum = evt.tickets?.reduce((acc, t) => acc + ((t.bookings?.length || 0) * Number(t.price || 0)), 0) || 0;
+    
+    // Improved image path resolution from the conflict version
+    let imageUrl = img1;
+    if (evt.image_url) {
+      imageUrl = evt.image_url.startsWith('http') ? evt.image_url : `http://localhost:8000/storage/${evt.image_url}`;
+    } else if (evt.cover_picture) {
+      imageUrl = evt.cover_picture.startsWith('http') ? evt.cover_picture : `http://localhost:8000/storage/${evt.cover_picture.replace('public/', '')}`;
+    }
+
     return {
       id: evt.event_id,
       title: evt.event_name,
-      image: evt.image_url ? 
-          (evt.image_url.startsWith('http') ? evt.image_url : `http://localhost:8000/storage/${evt.image_url}`) 
-          : img1,
+      image: imageUrl,
       date: new Date(evt.start_date_time).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       location: evt.venue?.location || evt.venue?.name || "TBD",
-      attendees: attendeesCount > 0 ? `${attendeesCount}` : "0",
+      attendees: attendeesCount,
       revenue: `BDT ${revenueSum.toLocaleString()}`, 
       growth: "+0%",
       category: evt.category?.category_name || "General",
       price: evt.tickets && evt.tickets.length > 0 ? `BDT ${evt.tickets[0].price}` : "Free",
-      organizer: user ? user.user_name : "You",
+      organizer: user ? (user.user_name || user.full_name) : "You",
     };
   };
 
@@ -175,12 +193,12 @@ export default function MyEvents() {
 
   const userInitials = useMemo(() => {
     if (!user) return null;
-    const name = user.user_name || user.fullName || "";
+    const name = user.full_name || user.user_name || "?";
     const parts = name.trim().split(" ");
     const initials = parts.length >= 2
       ? parts[0][0] + parts[parts.length - 1][0]
       : name.slice(0, 2);
-    return initials.toUpperCase() || "?";
+    return initials.toUpperCase();
   }, [user]);
 
   return (
@@ -190,7 +208,6 @@ export default function MyEvents() {
         .ripple-btn { position: relative; overflow: hidden; transform: translate3d(0, 0, 0); }
         .ripple-btn:after { content: ""; display: block; position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; background-image: radial-gradient(circle, #fff 10%, transparent 10.01%); background-repeat: no-repeat; background-position: 50%; transform: scale(10, 10); opacity: 0; transition: transform .5s, opacity 1s; }
         .ripple-btn:active:after { transform: scale(0, 0); opacity: .3; transition: 0s; }
-        @supports (padding-bottom: env(safe-area-inset-bottom)) { .mobile-bottom-nav { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); } }
       `}</style>
       <AnimationStyles />
 
@@ -199,16 +216,11 @@ export default function MyEvents() {
 
       <main className="flex-1 min-w-0 px-4 sm:px-8 lg:px-12 py-5 sm:py-8 lg:py-10 overflow-y-auto pb-28 md:pb-10">
 
-        {/* Header */}
         <FadeIn delay={0}>
           <header className="flex items-center justify-between mb-8 sm:mb-12">
             <div>
-              <h2 className={`text-2xl sm:text-4xl font-black tracking-tight ${darkMode ? "text-white" : "text-slate-900"}`}>
-                My Events
-              </h2>
-              <p className={`font-bold mt-1 sm:mt-2 text-sm sm:text-lg ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-                Manage and track your hosting performance
-              </p>
+              <h2 className={`text-2xl sm:text-4xl font-black tracking-tight ${darkMode ? "text-white" : "text-slate-900"}`}>My Events</h2>
+              <p className={`font-bold mt-1 sm:mt-2 text-sm sm:text-lg ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Manage and track performance</p>
             </div>
             {user ? (
               <div onClick={() => navigate("/profile")} className="cursor-pointer group ml-2">
@@ -238,49 +250,28 @@ export default function MyEvents() {
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
             {dynamicStats.map((stat, i) => (
               <FadeIn key={stat.id} delay={i * 80}>
-                <div
-                  className={`
-                    p-5 sm:p-8 rounded-[28px] sm:rounded-[40px] border transition-all hover:-translate-y-2
-                    ${stat.id === 1
-                      ? "bg-gradient-to-br from-indigo-600 to-blue-500 border-transparent"
-                      : darkMode ? "bg-[#1E0B3B] border-white/5" : "bg-white border-slate-100"
-                    }
-                  `}
-                >
-                  <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 ${stat.id === 1 ? "bg-white/20 text-white" : darkMode ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-50 text-indigo-600"}`}>
+                <div className={`p-5 sm:p-8 rounded-[28px] border transition-all hover:-translate-y-2 ${stat.id === 1 ? "bg-gradient-to-br from-indigo-600 to-blue-500 border-transparent" : darkMode ? "bg-[#1E0B3B] border-white/5" : "bg-white border-slate-100"}`}>
+                  <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center mb-4 ${stat.id === 1 ? "bg-white/20 text-white" : darkMode ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-50 text-indigo-600"}`}>
                     {React.cloneElement(stat.icon, { size: 20 })}
                   </div>
-                  <p className={`text-[10px] sm:text-[11px] font-black uppercase tracking-widest mb-1 ${stat.id === 1 ? "text-indigo-100" : "text-slate-400"}`}>
-                    {stat.label}
-                  </p>
-                  <h3 className={`text-2xl sm:text-4xl font-black ${stat.id === 1 ? "text-white" : darkMode ? "text-white" : "text-slate-900"}`}>
-                    <CountUp value={stat.value} delay={i * 120} duration={1200} />
-                  </h3>
+                  <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${stat.id === 1 ? "text-indigo-100" : "text-slate-400"}`}>{stat.label}</p>
+                  <h3 className="text-2xl sm:text-4xl font-black"><CountUp value={stat.value} delay={i * 120} duration={1200} /></h3>
                 </div>
               </FadeIn>
             ))}
           </div>
         )}
 
-        {/* Tab switcher */}
+        {/* Tabs */}
         <FadeIn delay={200}>
-          <div className={`inline-flex p-1.5 sm:p-2 rounded-[24px] sm:rounded-[30px] mb-8 sm:mb-12 w-full sm:w-auto ${darkMode ? "bg-[#1E0B3B]" : "bg-white shadow-sm border border-slate-100"}`}>
-            <button
-              onClick={() => setActiveTab("hosting")}
-              className={`flex-1 sm:flex-none px-5 sm:px-10 py-3 sm:py-4 rounded-[20px] sm:rounded-[24px] font-black text-xs sm:text-sm transition-all ${activeTab === "hosting" ? "bg-indigo-600 text-white shadow-xl shadow-indigo-600/20" : "text-slate-500 hover:text-indigo-500"}`}
-            >
-              Hosting
-            </button>
-            <button
-              onClick={() => setActiveTab("attending")}
-              className={`flex-1 sm:flex-none px-5 sm:px-10 py-3 sm:py-4 rounded-[20px] sm:rounded-[24px] font-black text-xs sm:text-sm transition-all ${activeTab === "attending" ? "bg-indigo-600 text-white shadow-xl shadow-indigo-600/20" : "text-slate-500 hover:text-indigo-500"}`}
-            >
-              Attending
-            </button>
+          <div className={`inline-flex p-1.5 rounded-[24px] mb-8 w-full sm:w-auto ${darkMode ? "bg-[#1E0B3B]" : "bg-white shadow-sm border border-slate-100"}`}>
+            {["hosting", "attending"].map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 sm:flex-none px-10 py-4 rounded-[20px] font-black text-xs capitalize transition-all ${activeTab === tab ? "bg-indigo-600 text-white shadow-xl shadow-indigo-600/20" : "text-slate-500"}`}>{tab}</button>
+            ))}
           </div>
         </FadeIn>
 
-        {/* Event cards */}
+        {/* Cards */}
         {!loaded ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8 lg:gap-10 pb-8 sm:pb-20">
             {[1, 2, 3].map((i) => <SkeletonHostedCard key={i} darkMode={darkMode} />)}
@@ -325,10 +316,17 @@ export default function MyEvents() {
                         <div className="text-lg sm:text-2xl font-black mt-1 text-emerald-500">{event.revenue}</div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-xs text-white ${event.id === 1 ? "bg-indigo-500" : event.id === 2 ? "bg-blue-500" : "bg-purple-500"}`}>
-                          {event.organizer.charAt(0)}
+                        {activeTab === "hosting" && (
+                          <button 
+                            onClick={() => handleDelete(event.id)} 
+                            className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
+                          >
+                            <X size={16} strokeWidth={3} />
+                          </button>
+                        )}
+                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-xs text-white ${event.id % 3 === 0 ? "bg-indigo-500" : event.id % 3 === 1 ? "bg-blue-500" : "bg-purple-500"}`}>
+                          {event.title.charAt(0)}
                         </div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter hidden sm:block">{event.organizer}</span>
                       </div>
                     </div>
                   </div>
@@ -340,7 +338,10 @@ export default function MyEvents() {
       </main>
 
       <div className="hidden md:block fixed bottom-12 right-12 z-[100]">
-        <button className="w-16 h-16 lg:w-20 lg:h-20 bg-indigo-600 rounded-[24px] lg:rounded-[30px] flex items-center justify-center text-white shadow-[0_20px_50px_rgba(79,70,229,0.4)] hover:scale-110 active:scale-90 transition-all ripple-btn">
+        <button
+          onClick={() => navigate("/create-event")}
+          className="w-16 h-16 lg:w-20 lg:h-20 bg-indigo-600 rounded-[24px] lg:rounded-[30px] flex items-center justify-center text-white shadow-[0_20px_50px_rgba(79,70,229,0.4)] hover:scale-110 active:scale-90 transition-all ripple-btn"
+        >
           <TrendingUp size={26} strokeWidth={2.5} className="rotate-45" />
         </button>
       </div>
