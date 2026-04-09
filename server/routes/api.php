@@ -55,7 +55,7 @@ Route::middleware('auth:api')->post('/reviews', [ReviewController::class, 'store
 // --- Events ---
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{id}', [EventController::class, 'show']);
-Route::post('/events', [EventController::class, 'store']);
+Route::middleware('auth:api')->post('/events', [EventController::class, 'store']);
 Route::middleware('auth:api')->put('/events/{id}', [EventController::class, 'update']);
 Route::middleware('auth:api')->delete('/events/{id}', [EventController::class, 'destroy']);
 

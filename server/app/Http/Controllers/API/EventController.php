@@ -10,7 +10,7 @@ class EventController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api')->only(['update', 'destroy']);
+        $this->middleware('auth:api')->only(['store', 'update', 'destroy']);
     }
 
     public function index()
@@ -41,7 +41,7 @@ class EventController extends Controller
 
         $event = new Event();
         $event->event_name = substr($validatedData['event_name'], 0, 100);
-        $event->description = substr($validatedData['description'], 0, 100);
+        $event->description = $validatedData['description'];
         $event->start_date_time = substr($validatedData['start_date_time'], 0, 50);
         $event->venue_id = $venue->venue_id;
         $event->category_id = $category->category_id;
