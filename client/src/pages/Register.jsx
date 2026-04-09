@@ -75,7 +75,8 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8000/auth/google";
+    const backendUrl = import.meta.env.VITE_BACKEND_ENDPOINT || "http://localhost:8000";
+    window.location.href = `${backendUrl}/auth/google`;
   };
 
   return (
