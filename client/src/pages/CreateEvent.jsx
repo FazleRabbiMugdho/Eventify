@@ -81,29 +81,26 @@ function VenueAutocomplete({ value, onChange, inputClasses, darkMode }) {
     }
     setIsSearching(true);
     try {
-      // countrycodes=bd biases results toward Bangladesh
+      // Photon is faster and better for Typeahead
+      // center lat/lon for Bangladesh to bias results
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=bd&format=json&addressdetails=1&limit=6`,
-        { headers: { "Accept-Language": "en" } }
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lat=23.8103&lon=90.4125&bbox=88.0,20.5,92.7,26.6`
       );
       const data = await res.json();
-      const formatted = data.map((item) => ({
-        id: item.place_id,
-        display: item.display_name,
-        // Build a clean short label from address parts
-        short: [
-          item.address?.amenity || item.address?.building,
-          item.address?.road || item.address?.suburb || item.address?.neighbourhood,
-          item.address?.city || item.address?.town || item.address?.county,
-          item.address?.state,
-        ]
-          .filter(Boolean)
-          .join(", "),
-      }));
+      const formatted = data.features.map((f) => {
+        const p = f.properties;
+        const shortName = p.name || p.street || p.district;
+        const cityInfo = [p.city, p.state].filter(Boolean).join(", ");
+        return {
+          id: f.properties.osm_id || Math.random(),
+          display: [p.name, p.street, p.district, p.city, p.country].filter(Boolean).join(", "),
+          short: cityInfo ? `${shortName}, ${cityInfo}` : shortName,
+        };
+      });
       setSuggestions(formatted);
       setShowDropdown(formatted.length > 0);
     } catch (err) {
-      console.error("Nominatim fetch failed:", err);
+      console.error("Photon fetch failed:", err);
       setSuggestions([]);
     } finally {
       setIsSearching(false);

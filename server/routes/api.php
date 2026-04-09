@@ -29,6 +29,7 @@ Route::middleware('auth:api')->post('/logout', [AuthController::class, 'logout']
 // --- Users ---
 Route::get('/users', [UserController::class, 'index']);
 Route::get('/users/{id}', [UserController::class, 'show']);
+Route::middleware('auth:api')->get('/my-events', [UserController::class, 'myEvents']);
 Route::middleware('auth:api')->post('/users', [UserController::class, 'store']);
 Route::middleware('auth:api')->put('/users/{id}', [UserController::class, 'update']);
 Route::middleware('auth:api')->delete('/users/{id}', [UserController::class, 'destroy']);

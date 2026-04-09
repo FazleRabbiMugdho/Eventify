@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo } from "react";
+import React, { useState, useContext, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../App";
 import { AuthContext } from "../context/AuthContext";
@@ -10,61 +10,13 @@ import {
 import img1 from "../assets/1.jpg";
 import img2 from "../assets/2.jpg";
 import img3 from "../assets/3.jpg";
+import ApiClient from "../api";
 import {
   AnimationStyles, FadeIn, FadeInGroup, InViewFade,
   CountUp, SkeletonStatCard, SkeletonHostedCard, usePageLoad,
 } from "../components/ui";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
-
-const STATS = [
-  { id: 1, label: "Total Events", value: "12", icon: <TrendingUp size={24} /> },
-  { id: 2, label: "Total Attendees", value: "2,847", icon: <Users size={24} /> },
-  { id: 3, label: "Total Revenue", value: "BDT 18,420", icon: <DollarSign size={24} /> },
-  { id: 4, label: "Total Views", value: "15,634", icon: <Eye size={24} /> },
-];
-
-const HOSTED_EVENTS = [
-  {
-    id: 1,
-    title: "Summer Music Festival 2026",
-    image: img1,
-    date: "Jun 15",
-    location: "Golden Gate Park, San Francisco",
-    attendees: "2547+",
-    revenue: "BDT 226,683",
-    growth: "+15%",
-    category: "Music",
-    price: "BDT 89",
-    organizer: "Music Collective",
-  },
-  {
-    id: 2,
-    title: "Tech Summit 2026",
-    image: img2,
-    date: "Jul 22",
-    location: "Moscone Center, San Francisco",
-    attendees: "1847+",
-    revenue: "BDT 552,253",
-    growth: "+15%",
-    category: "Tech",
-    price: "BDT 299",
-    organizer: "Tech Innovators",
-  },
-  {
-    id: 3,
-    title: "Business Networking Mixer",
-    image: img3,
-    date: "May 10",
-    location: "The Ritz-Carlton, San Francisco",
-    attendees: "324+",
-    revenue: "BDT 14,580",
-    growth: "+15%",
-    category: "Business",
-    price: "BDT 45",
-    organizer: "BizConnect",
-  },
-];
 
 // ─── Logo SVG ─────────────────────────────────────────────────────────────────
 
@@ -165,7 +117,63 @@ export default function MyEvents() {
   const { darkMode, setDarkMode } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("hosting");
-  const loaded = usePageLoad(500);
+  
+  const [hostingEvents, setHostingEvents] = useState([]);
+  const [attendingEvents, setAttendingEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+    const fetchData = async () => {
+      setIsLoading(true);
+      const api = new ApiClient();
+      const res = await api.getMyEvents();
+      if (res) {
+        setHostingEvents(res.hosting || []);
+        setAttendingEvents(res.attending || []);
+      }
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [user]);
+
+  const loaded = usePageLoad(500) && !isLoading;
+
+  const totalEvents = hostingEvents.length;
+  const totalAttendees = hostingEvents.reduce((acc, evt) => acc + (evt.tickets?.reduce((tAcc, t) => tAcc + (t.bookings?.length || 0), 0) || 0), 0);
+  const totalRevenue = hostingEvents.reduce((acc, evt) => acc + (evt.tickets?.reduce((tAcc, t) => tAcc + ((t.bookings?.length || 0) * Number(t.price || 0)), 0) || 0), 0);
+
+  const dynamicStats = useMemo(() => [
+    { id: 1, label: "Total Events", value: String(totalEvents), icon: <TrendingUp size={24} /> },
+    { id: 2, label: "Total Attendees", value: String(totalAttendees), icon: <Users size={24} /> },
+    { id: 3, label: "Total Revenue", value: `BDT ${totalRevenue.toLocaleString()}`, icon: <DollarSign size={24} /> },
+    { id: 4, label: "Total Views", value: "0", icon: <Eye size={24} /> },
+  ], [totalEvents, totalAttendees, totalRevenue]);
+
+  const formatEvent = (evt) => {
+    const attendeesCount = evt.tickets?.reduce((acc, t) => acc + (t.bookings?.length || 0), 0) || 0;
+    const revenueSum = evt.tickets?.reduce((acc, t) => acc + ((t.bookings?.length || 0) * Number(t.price || 0)), 0) || 0;
+    return {
+      id: evt.event_id,
+      title: evt.event_name,
+      image: evt.image_url ? 
+          (evt.image_url.startsWith('http') ? evt.image_url : `http://localhost:8000/storage/${evt.image_url}`) 
+          : img1,
+      date: new Date(evt.start_date_time).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      location: evt.venue?.location || evt.venue?.name || "TBD",
+      attendees: attendeesCount > 0 ? `${attendeesCount}` : "0",
+      revenue: `BDT ${revenueSum.toLocaleString()}`, 
+      growth: "+0%",
+      category: evt.category?.category_name || "General",
+      price: evt.tickets && evt.tickets.length > 0 ? `BDT ${evt.tickets[0].price}` : "Free",
+      organizer: user ? user.user_name : "You",
+    };
+  };
+
+  const displayedEvents = (activeTab === "hosting" ? hostingEvents : attendingEvents).map(formatEvent);
 
   const userInitials = useMemo(() => {
     if (!user) return null;
@@ -224,13 +232,13 @@ export default function MyEvents() {
         {/* Stats grid — skeleton while loading, CountUp after */}
         {!loaded ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
-            {STATS.map((stat) => (
+            {dynamicStats.map((stat) => (
               <SkeletonStatCard key={stat.id} darkMode={darkMode} gradient={stat.id === 1} />
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
-            {STATS.map((stat, i) => (
+            {dynamicStats.map((stat, i) => (
               <FadeIn key={stat.id} delay={i * 80}>
                 <div
                   className={`
@@ -281,7 +289,11 @@ export default function MyEvents() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8 lg:gap-10 pb-8 sm:pb-20">
-            {HOSTED_EVENTS.map((event, i) => (
+            {displayedEvents.length === 0 ? (
+              <div className="col-span-full py-16 text-center text-slate-500 font-bold">
+                No events found in this category.
+              </div>
+            ) : displayedEvents.map((event, i) => (
               <InViewFade key={event.id} delay={i * 100}>
                 <div
                   className={`group rounded-[36px] sm:rounded-[48px] overflow-hidden transition-all duration-500 border ${darkMode ? "bg-[#1E0B3B] border-white/5 hover:border-indigo-500/30 hover:-translate-y-2" : "bg-white border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200 hover:-translate-y-2"}`}

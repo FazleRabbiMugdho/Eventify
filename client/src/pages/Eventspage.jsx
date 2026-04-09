@@ -1630,7 +1630,7 @@ export default function Eventpage() {
             location: e.venue?.location || "TBD",
             price: e.tickets && e.tickets.length > 0 ? e.tickets[0].price : 0,
             image: e.image_url 
-              ? `${secrets.backendEndpoint}/storage/${e.image_url}` 
+              ? (e.image_url.startsWith('http') ? e.image_url : `${secrets.backendEndpoint}/storage/${e.image_url}`)
               : "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1200&q=80"
           }));
           

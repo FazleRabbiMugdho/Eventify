@@ -4,7 +4,9 @@ import toast from "react-hot-toast";
 
 export interface User {
   id?: number;
+  user_id?: number; // Backend sometimes uses user_id
   user_name?: string;
+  full_name?: string;
   email: string;
   phone?: string;
   password?: string;
@@ -114,22 +116,39 @@ class ApiClient {
 
   // --------- USER ---------
 
- async getProfile(): Promise<User | undefined> {
-  try {
-    // We use this.client.get because it already has the 
-    // Authorization header set up in the constructor/setToken
-    const response = await this.client.get("/api/profile");
-    return response.data;
-  } catch (error) {
-    this.handleError(error);
+  async getProfile(): Promise<User | undefined> {
+    try {
+      const response = await this.client.get("/api/profile");
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+    }
   }
- }
+
+  async updateUser(id: number, data: Partial<User>): Promise<User | undefined> {
+    try {
+      const response = await this.client.put(`/api/users/${id}`, data);
+      toast.success("Profile updated successfully");
+      return response.data.user;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
 
   // --------- EVENTS ---------
 
   async getEvents(): Promise<Event[] | undefined> {
     try {
       const response = await this.client.get("/api/events");
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async getMyEvents(): Promise<{ hosting: Event[], attending: Event[] } | undefined> {
+    try {
+      const response = await this.client.get("/api/my-events");
       return response.data;
     } catch (error) {
       this.handleError(error);
