@@ -16,8 +16,6 @@ import {
   CountUp, SkeletonStatCard, SkeletonHostedCard, usePageLoad,
 } from "../components/ui";
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
 // ─── Logo SVG ─────────────────────────────────────────────────────────────────
 
 function LogoIcon() {
@@ -229,7 +227,7 @@ export default function MyEvents() {
           </header>
         </FadeIn>
 
-        {/* Stats grid — skeleton while loading, CountUp after */}
+        {/* Stats grid */}
         {!loaded ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
             {dynamicStats.map((stat) => (
@@ -282,7 +280,7 @@ export default function MyEvents() {
           </div>
         </FadeIn>
 
-        {/* Event cards — skeleton while loading, staggered FadeIn after */}
+        {/* Event cards */}
         {!loaded ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8 lg:gap-10 pb-8 sm:pb-20">
             {[1, 2, 3].map((i) => <SkeletonHostedCard key={i} darkMode={darkMode} />)}
@@ -298,7 +296,6 @@ export default function MyEvents() {
                 <div
                   className={`group rounded-[36px] sm:rounded-[48px] overflow-hidden transition-all duration-500 border ${darkMode ? "bg-[#1E0B3B] border-white/5 hover:border-indigo-500/30 hover:-translate-y-2" : "bg-white border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200 hover:-translate-y-2"}`}
                 >
-                  {/* Image */}
                   <div className="relative h-44 sm:h-64">
                     <img src={event.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={event.title} />
                     <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest">{event.category}</div>
@@ -308,7 +305,6 @@ export default function MyEvents() {
                     </div>
                   </div>
 
-                  {/* Info */}
                   <div className="p-5 sm:p-10">
                     <h4 className="text-base sm:text-xl font-black mb-3 sm:mb-4 tracking-tight leading-tight group-hover:text-indigo-500 transition-colors">{event.title}</h4>
                     <div className="flex items-center gap-2 text-slate-500 text-xs font-bold mb-4 sm:mb-6">
@@ -343,7 +339,6 @@ export default function MyEvents() {
         )}
       </main>
 
-      {/* FAB — hidden on mobile (bottom nav takes over) */}
       <div className="hidden md:block fixed bottom-12 right-12 z-[100]">
         <button className="w-16 h-16 lg:w-20 lg:h-20 bg-indigo-600 rounded-[24px] lg:rounded-[30px] flex items-center justify-center text-white shadow-[0_20px_50px_rgba(79,70,229,0.4)] hover:scale-110 active:scale-90 transition-all ripple-btn">
           <TrendingUp size={26} strokeWidth={2.5} className="rotate-45" />
