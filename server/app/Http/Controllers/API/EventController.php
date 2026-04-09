@@ -59,19 +59,54 @@ class EventController extends Controller
 
         // Handle base64 image upload
         if (!empty($validatedData['image_base64'])) {
-            $imageData = $validatedData['image_base64'];
-            // Strip the data URI prefix if present (e.g. "data:image/png;base64,...")
-            if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
-                $extension = $matches[1];
-                $imageData = substr($imageData, strpos($imageData, ',') + 1);
-            } else {
-                $extension = 'png';
+            $cloudinaryUrl = env('CLOUDINARY_URL');
+            $uploaded = false;
+
+            if ($cloudinaryUrl) {
+                try {
+                    $parsed = parse_url($cloudinaryUrl);
+                    $api_key = $parsed['user'] ?? '';
+                    $api_secret = $parsed['pass'] ?? '';
+                    $cloud_name = $parsed['host'] ?? '';
+
+                    $timestamp = time();
+                    $signature = sha1("timestamp=" . $timestamp . $api_secret);
+
+                    $imageData = $validatedData['image_base64'];
+                    if (!preg_match('/^data:image\/\w+;base64,/', $imageData)) {
+                        $imageData = 'data:image/png;base64,' . $imageData;
+                    }
+
+                    $response = \Illuminate\Support\Facades\Http::asForm()->post("https://api.cloudinary.com/v1_1/{$cloud_name}/image/upload", [
+                        'file' => $imageData,
+                        'api_key' => $api_key,
+                        'timestamp' => $timestamp,
+                        'signature' => $signature
+                    ]);
+
+                    if ($response->successful() && $secureUrl = $response->json('secure_url')) {
+                        $event->image_url = $secureUrl;
+                        $uploaded = true;
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Cloudinary upload failed: ' . $e->getMessage());
+                }
             }
-            $imageData = base64_decode($imageData);
-            if ($imageData !== false) {
-                $fileName = 'events/' . uniqid('evt_') . '.' . $extension;
-                \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $imageData);
-                $event->image_url = $fileName;
+
+            if (!$uploaded) {
+                $imageData = $validatedData['image_base64'];
+                if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
+                    $extension = $matches[1];
+                    $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                } else {
+                    $extension = 'png';
+                }
+                $imageData = base64_decode($imageData);
+                if ($imageData !== false) {
+                    $fileName = 'events/' . uniqid('evt_') . '.' . $extension;
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $imageData);
+                    $event->image_url = $fileName;
+                }
             }
         }
 
