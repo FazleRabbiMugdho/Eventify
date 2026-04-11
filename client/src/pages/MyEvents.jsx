@@ -200,7 +200,7 @@ export default function MyEvents() {
       date: new Date(evt.start_date_time).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       location: evt.venue?.location || evt.venue?.name || "TBD",
       attendees: attendeesCount,
-      revenue: `BDT ${revenueSum.toLocaleString()}`,
+      revenue: `Total Revenue ${revenueSum.toLocaleString()}`,
       growth: "+0%",
       category: evt.category?.category_name || "General",
       price: evt.tickets && evt.tickets.length > 0 ? `BDT ${evt.tickets[0].price}` : "Free",

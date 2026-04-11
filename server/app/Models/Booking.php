@@ -17,7 +17,10 @@ class Booking extends Model
         'booking_date',
         'user_id',
         'ticket_id',
-        'payment_id'
+        'payment_id',
+        'customer_name',
+        'customer_email',
+        'customer_phone'
     ];
 
     public function user()

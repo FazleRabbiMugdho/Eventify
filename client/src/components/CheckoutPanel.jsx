@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
+import { AuthContext } from "../context/AuthContext";
 import axios from 'axios';
 import { 
   X, Minus, Plus, User, Mail, Phone, 
@@ -8,15 +9,28 @@ import { QRCodeSVG } from 'qrcode.react';
 import { secrets } from '../secrets';
 
 const CheckoutPanel = ({ event, dm, onClose, onConfirmed }) => {
+  const { user } = useContext(AuthContext);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSuccess, setIsSuccess] = useState(false);
   const [details, setDetails] = useState({
-    name: "",
-    email: "",
-    phone: ""
+    name: user?.user_name || user?.full_name || "",
+    email: user?.email || "",
+    phone: user?.phone || ""
   });
+
+  // Keep details in sync if user state changes
+  useEffect(() => {
+    if (user) {
+      setDetails(prev => ({
+        ...prev,
+        name: prev.name || user.user_name || user.full_name || "",
+        email: prev.email || user.email || "",
+        phone: prev.phone || user.phone || ""
+      }));
+    }
+  }, [user]);
 
   const serviceFee = 550;
   const subtotal = event.price * quantity;
@@ -26,7 +40,7 @@ const CheckoutPanel = ({ event, dm, onClose, onConfirmed }) => {
     const newErrors = {};
     const nameRegex = /^[a-zA-Z\s\.]{4,50}$/;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-    const phoneRegex = /^(?:\+88|88)?(01[3-9]\d{8})$/;
+    const phoneRegex = /^01[3-9]\d{8}$/; // Exact regex from Register.jsx
 
     if (!nameRegex.test(details.name)) {
       newErrors.name = "Invalid name (Use at least 4 letters)";
@@ -34,8 +48,11 @@ const CheckoutPanel = ({ event, dm, onClose, onConfirmed }) => {
     if (!emailRegex.test(details.email)) {
       newErrors.email = "Only @gmail.com addresses allowed";
     }
-    if (!phoneRegex.test(details.phone)) {
-      newErrors.phone = "Invalid Bangladesh phone number";
+    
+    if (details.phone.length < 11) {
+      newErrors.phone = "Phone number must be at least 11 digits";
+    } else if (!phoneRegex.test(details.phone)) {
+      newErrors.phone = "Invalid Bangladeshi phone number";
     }
 
     setErrors(newErrors);
