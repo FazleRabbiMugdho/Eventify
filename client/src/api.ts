@@ -241,25 +241,26 @@ class ApiClient {
   private handleError(error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
-        const data = error.response.data as any;
-        let message = data.message || data.error || "Server error";
+        const data = error.response.data as { message?: string; error?: string; errors?: Record<string, string[]> };
+        const message = data.message || data.error || "Server error";
 
         // Handle Laravel validation errors (422)
         if (error.response.status === 422 && data.errors) {
-          Object.values(data.errors).forEach((errorGroup: any) => {
+          Object.values(data.errors).forEach((errorGroup: string[]) => {
             if (Array.isArray(errorGroup)) {
-              errorGroup.forEach(msg => toast.error(msg));
+              errorGroup.forEach((msg) => toast.error(msg));
             }
           });
           return; // Stop here as we've already shown all specific toasts
         } else if (error.response.status === 422 && !data.message) {
-            // If data is just the errors object directly
-            Object.values(data).forEach((errorGroup: any) => {
-                if (Array.isArray(errorGroup)) {
-                    errorGroup.forEach(msg => toast.error(msg));
-                }
-            });
-            return;
+          // If data is just the errors object directly
+          const errors = data as unknown as Record<string, string[]>;
+          Object.values(errors).forEach((errorGroup: string[]) => {
+            if (Array.isArray(errorGroup)) {
+              errorGroup.forEach((msg) => toast.error(msg));
+            }
+          });
+          return;
         }
 
         console.error("API Error:", message);
