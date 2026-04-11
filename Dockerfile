@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libssl-dev \
     zip \
     unzip \
     nodejs \
@@ -36,8 +37,9 @@ RUN a2enmod rewrite
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
+# Install PHP extensions (openssl is required for Gmail SMTP over TLS/SSL)
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-enable openssl || true
 
 # By default, Apache serves files from /var/www/html.
 # Laravel expects the document root to point to the public directory of its project structure for proper routing and security.
