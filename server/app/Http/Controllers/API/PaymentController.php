@@ -68,7 +68,7 @@ class PaymentController extends Controller
             'X-APP-Key' => env('BKASH_APP_KEY'),
         ])->post("{$this->baseUrl}/tokenized/checkout/create", [
             'mode' => '0011',
-            'payerReference' => ' ',
+            'payerReference' => (string) $request->ticket_id,
             'callbackURL' => route('bkash.callback', [
                 'ticket_id' => $request->ticket_id,
                 'user_id' => auth()->id(),
@@ -76,10 +76,10 @@ class PaymentController extends Controller
                 'customer_email' => $request->customer_email,
                 'customer_phone' => $request->customer_phone,
             ]),
-            'amount' => $amount,
+            'amount' => (string) number_format($amount, 2, '.', ''),
             'currency' => 'BDT',
             'intent' => 'sale',
-            'merchantInvoiceNumber' => 'INV' . uniqid()
+            'merchantInvoiceNumber' => 'INV' . time() . rand(100, 999)
         ]);
 
         $result = $response->json();
