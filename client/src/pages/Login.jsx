@@ -81,8 +81,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    const backendUrl = import.meta.env.VITE_BACKEND_ENDPOINT || "http://localhost:8000";
-    window.location.href = `${backendUrl}/auth/google`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
   return (

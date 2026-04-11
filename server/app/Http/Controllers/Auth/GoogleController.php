@@ -44,8 +44,7 @@ class GoogleController extends Controller
 
         $token = auth('api')->login($user);
 
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
-        return redirect($frontendUrl . '/auth/callback?token=' . $token);
+        return redirect(env('FRONTEND_URL', 'http://localhost:3000') . '/auth/callback?token=' . $token);
 
     } catch (\Exception $e) {
         return response()->json(['error' => 'Google Auth Failed', 'details' => $e->getMessage()], 500);
