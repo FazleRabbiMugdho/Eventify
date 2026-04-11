@@ -51,12 +51,61 @@ export default function RegisterPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const getPasswordStrength = (pass) => {
+    if (!pass) return 0;
+    let score = 0;
+    if (pass.length >= 6) score++;
+    if (/[A-Z]/.test(pass)) score++;
+    if (/[a-z]/.test(pass)) score++;
+    if (/[0-9]/.test(pass)) score++;
+    if (/[^A-Za-z0-9]/.test(pass)) score++;
+    return score;
+  };
+
+  const strength = getPasswordStrength(form.password);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    let hasErrors = false;
+
     if (form.password !== form.confirmPassword) {
       toast.error("Passwords do not match");
-      return;
+      hasErrors = true;
     }
+
+    if (!form.email.includes("@") || !form.email.toLowerCase().endsWith(".com")) {
+      toast.error("Invalid email (must include @ and end with .com)");
+      hasErrors = true;
+    }
+
+    if (form.email !== form.email.toLowerCase()) {
+      toast.error("Email must be in lowercase letters");
+      hasErrors = true;
+    }
+
+    if (form.phone.length < 11) {
+      toast.error("Phone number must be at least 11 digits");
+      hasErrors = true;
+    }
+
+    const bdPhoneRegex = /^01[3-9]\d{8}$/;
+    if (!bdPhoneRegex.test(form.phone)) {
+      toast.error("Invalid Bangladeshi phone number");
+      hasErrors = true;
+    }
+
+    if (form.password.length < 6) {
+      toast.error("Password should consist at least 6 characters");
+      hasErrors = true;
+    }
+
+    if (strength < 5) {
+      toast.error("Please enter a strong password");
+      hasErrors = true;
+    }
+
+    if (hasErrors) return;
+
     try {
       const res = await api.register(
         form.fullName,
@@ -69,8 +118,7 @@ export default function RegisterPage() {
         navigate("/login");
       }
     } catch (error) {
-      console.error(error);
-      toast.error(error?.response?.data?.message || "Registration failed");
+      console.error("Registration submission error:", error);
     }
   };
 
@@ -253,6 +301,33 @@ export default function RegisterPage() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+
+              {/* Strength Indicator */}
+              {form.password && (
+                <div className="px-1">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Strength: <span style={{ color: strength === 5 ? "#10b981" : "#f43f5e" }}>
+                        {strength === 5 ? "Strong" : "Weak"}
+                      </span>
+                    </span>
+                    {form.password.length < 6 && (
+                      <span className="text-[10px] font-bold text-rose-400 animate-pulse">
+                        Min 6 characters
+                      </span>
+                    )}
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full transition-all duration-500"
+                      style={{
+                        width: `${(strength / 5) * 100}%`,
+                        background: strength === 5 ? "linear-gradient(90deg, #10b981, #34d399)" : "linear-gradient(90deg, #f43f5e, #fb7185)"
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Confirm Password */}
               <div

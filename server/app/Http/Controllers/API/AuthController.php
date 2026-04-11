@@ -19,14 +19,30 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'user_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|max:20',
+            'email' => ['required', 'email', 'unique:users,email', 'regex:/^.+@.+\.com$/i'],
+            'phone' => 'required|string|max:20|unique:users,phone',
             // Accept either 'password' or 'password_hash' to prevent frontend errors
-            'password' => 'required_without:password_hash|string|min:6',
-            'password_hash' => 'required_without:password|string|min:6',
+            'password' => [
+                'required_without:password_hash',
+                'string',
+                'min:6',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{6,}$/'
+            ],
+            'password_hash' => [
+                'required_without:password',
+                'string',
+                'min:6',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{6,}$/'
+            ],
+        ], [
+            'phone.unique' => 'This phone number is already registered.',
+            'password.min' => 'Password should consist at least 6 characters',
+            'password.regex' => 'Password must contain uppercase, lowercase, numbers and special characters',
+            'password_hash.min' => 'Password should consist at least 6 characters',
+            'password_hash.regex' => 'Password must contain uppercase, lowercase, numbers and special characters',
         ]);
 
-         if ($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
@@ -58,6 +74,7 @@ class AuthController extends Controller
                 'message' => 'Invalid email or password'
             ], 401);
         }
+
 
         $token = JWTAuth::fromUser($user);
 
@@ -99,6 +116,7 @@ class AuthController extends Controller
             'message' => 'Successfully logged out'
         ]);
     }
+
 
     // PROFILE (Protected)
     public function profile()

@@ -32,9 +32,26 @@ class UserController extends Controller
     {
         $request->validate([
             'user_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'password_hash' => 'required|string|min:6',
+            'email' => ['required', 'email', 'unique:users,email', 'regex:/^[a-z0-9._%+-]+@[a-z0-9.-]+\.com$/'],
+            'phone' => [
+                'required',
+                'string',
+                'size:11',
+                'regex:/^01[3-9]\d{8}$/',
+                'unique:users,phone'
+            ],
+            'password_hash' => [
+                'required',
+                'string',
+                'min:6',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{6,}$/'
+            ],
+        ], [
+            'phone.size' => 'Phone number must be exactly 11 digits.',
+            'phone.regex' => 'Invalid Bangladeshi phone number (should start with 013-019).',
+            'phone.unique' => 'This phone number is already registered.',
+            'password_hash.min' => 'Password should consist at least 6 characters',
+            'password_hash.regex' => 'Password must contain uppercase, lowercase, numbers and special characters',
         ]);
 
         $user = User::create([
@@ -45,7 +62,10 @@ class UserController extends Controller
             'role_id' => 1,
         ]);
 
-        return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
+        return response()->json([
+            'message' => 'User registered successfully.',
+            'user'    => $user,
+        ], 201);
     }
 
     // Update a user

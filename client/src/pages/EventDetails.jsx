@@ -11,6 +11,8 @@ import { AnimationStyles, FadeIn, SlideIn, usePageLoad, SkeletonEventDetail } fr
 import CheckoutPanel from "../components/CheckoutPanel";
 import ApiClient from "../api";
 import { secrets } from "../secrets";
+import logoLight from '../assets/eventify-logo-light.png';
+import logoDark from '../assets/eventify-logo-dark.png';
 
 // Mock data is no longer needed but kept as an empty reference if necessary
 const ALL_EVENTS = [];
@@ -65,18 +67,13 @@ function DesktopSidebar({ dm, navigate }) {
         ${dm ? "bg-[#0F0121] border-white/5" : "bg-white border-slate-100"}
       `}
     >
-      <div className="p-8 flex items-center gap-4">
-        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/20 shrink-0">
-          <LogoIcon />
-        </div>
-        <div className="flex flex-col">
-          <span className={`text-2xl font-black tracking-tighter ${dm ? "text-white" : "text-indigo-600"}`}>
-            Eventify
-          </span>
-          <span className={`text-xs font-bold ${dm ? "text-slate-400" : "text-indigo-400"}`}>
-            Ticketing & Management
-          </span>
-        </div>
+      <div className="p-8">
+        <img
+          src={dm ? logoDark : logoLight}
+          alt="Eventify"
+          onClick={() => navigate('/')}
+          className="w-48 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
       </div>
       <nav className="flex-1 px-6 space-y-3 mt-8">
         {[
@@ -110,10 +107,13 @@ function TabletSidebar({ dm, navigate }) {
         ${dm ? "bg-[#0F0121] border-white/5" : "bg-white border-slate-100"}
       `}
     >
-      <div className="pt-6 pb-4">
-        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
-          <LogoIcon />
-        </div>
+      <div className="pt-6 pb-4 px-3">
+        <img
+          src={dm ? logoDark : logoLight}
+          alt="Eventify"
+          onClick={() => navigate('/')}
+          className="w-12 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
       </div>
       <div className={`w-8 h-px mb-4 ${dm ? "bg-white/10" : "bg-slate-100"}`} />
       <nav className="flex flex-col gap-3 px-3 flex-1">
@@ -210,7 +210,7 @@ export default function EventDetails() {
             location: data.venue?.location || "TBD",
             category: data.category?.category_name || "General",
             price: data.tickets && data.tickets.length > 0 ? data.tickets[0].price : 0,
-            image: data.image_url 
+            image: data.image_url
               ? (data.image_url.startsWith('http') ? data.image_url : `${secrets.backendEndpoint}/storage/${data.image_url}`)
               : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80"
           };
@@ -339,8 +339,8 @@ export default function EventDetails() {
           ) : !event ? (
             <div className="flex flex-col items-center justify-center py-20">
               <p className="text-center font-black text-2xl mb-8">Event Not Found</p>
-              <button 
-                onClick={() => navigate("/")} 
+              <button
+                onClick={() => navigate("/")}
                 className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black shadow-xl transition-all active:scale-95"
               >
                 Go Back Home

@@ -74,7 +74,7 @@ export default function LoginPage() {
         navigate("/");
       }
     } catch (err) {
-      setError(err.message || "Login failed");
+      setError(err.response?.data?.message || err.message || "Login failed");
     }
   };
 
