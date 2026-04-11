@@ -1,14 +1,13 @@
 import React, { useState, useMemo, useContext, useRef, useEffect, useCallback } from "react";
-import ReactDOM from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../context/ThemeContext";
 import { AuthContext } from "../context/AuthContext";
 import {
-  LayoutDashboard, Calendar, PlusSquare, Search, Bell,
+  LayoutDashboard, Calendar, PlusSquare, Search,
   MapPin, ArrowRight, TrendingUp, Filter, X, SearchX,
-  MessageCircle, Send, Paperclip, Ticket, PartyPopper,
+  MessageCircle, Send, Paperclip,
   ChevronLeft, ChevronRight, ChevronDown, Settings, Sparkles,
-  Menu, User,
+  Menu, User, LogIn,
 } from "lucide-react";
 import {
   AnimationStyles, FadeIn, FadeInGroup, InViewFade,
@@ -29,44 +28,7 @@ const CATEGORIES = [
   "Art", "Food", "Wellness", "Comedy",
 ];
 
-const NOTIFICATIONS = [
-  {
-    id: 1,
-    title: "Event Starting Soon",
-    desc: "Summer Music Festival starts in 2 hours",
-    time: "2 hours ago",
-    color: "bg-indigo-600",
-    icon: <Calendar size={20} />,
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "Registration Confirmed",
-    desc: "Your ticket for Tech Summit 2026 is confirmed",
-    time: "5 hours ago",
-    color: "bg-blue-600",
-    icon: <Ticket size={20} />,
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "Event Update",
-    desc: "New speaker added to AI Conference",
-    time: "1 day ago",
-    color: "bg-orange-500",
-    icon: <Bell size={20} />,
-    unread: false,
-  },
-  {
-    id: 4,
-    title: "Event Success",
-    desc: "Your event 'Startup Meetup' reached 100 attendees!",
-    time: "2 days ago",
-    color: "bg-emerald-500",
-    icon: <PartyPopper size={20} />,
-    unread: false,
-  },
-];
+
 
 const INITIAL_VISIBLE = 6;
 
@@ -440,7 +402,7 @@ function TabletSidebar({ darkMode, navigate }) {
   );
 }
 
-// ─── Notification Panel ───────────────────────────────────────────────────────
+// ─── Mobile Top Bar ───────────────────────────────────────────────────────────
 
 function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, setIsSearchActive, user, navigate }) {
   return (
@@ -453,14 +415,7 @@ function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, s
           onClick={() => navigate('/')}
           className="w-32 cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
-        {!user ? (
-          <button
-            onClick={() => navigate('/login')}
-            className="px-4 py-2 bg-indigo-600 text-white text-sm font-black rounded-2xl shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 transition-colors"
-          >
-            Log In
-          </button>
-        ) : (
+        {user && (
           <div onClick={() => navigate('/profile')} className="cursor-pointer group">
             <div className={`w-10 h-10 rounded-2xl ${user.profile_picture ? "" : "bg-indigo-600"} overflow-hidden flex items-center justify-center text-white text-sm font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform`}>
               {user.profile_picture ? (
@@ -511,120 +466,13 @@ function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, s
   );
 }
 
-// ─── Notification Panel ───────────────────────────────────────────────────────
 
-function NotificationPanel({ darkMode, showNotif, setShowNotif }) {
-  const bellRef = useRef(null);
-  const [dropdownStyle, setDropdownStyle] = useState({});
-
-  useEffect(() => {
-    if (showNotif && bellRef.current) {
-      const rect = bellRef.current.getBoundingClientRect();
-      setDropdownStyle({
-        position: "fixed",
-        top: rect.bottom + 12,
-        right: window.innerWidth - rect.right,
-      });
-    }
-  }, [showNotif]);
-
-  const dropdown = showNotif ? ReactDOM.createPortal(
-    <>
-      <div
-        className="fixed inset-0 z-[499]"
-        onClick={() => setShowNotif(false)}
-      />
-      <div
-        className={`
-          w-[360px] z-[500] border
-          rounded-[28px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]
-          animate-in fade-in zoom-in-95 duration-300
-          ${darkMode ? "bg-[#1E0B3B] border-white/10" : "bg-white border-slate-100"}
-        `}
-        style={dropdownStyle}
-      >
-        <div className="p-5">
-          <button
-            onClick={() => setShowNotif(false)}
-            className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors mb-4 font-black text-xs uppercase tracking-widest"
-          >
-            <ChevronLeft size={16} /> Back
-          </button>
-          <div className="flex justify-between items-end mb-4">
-            <div>
-              <h2 className={`text-xl font-black tracking-tight ${darkMode ? "text-white" : "text-slate-900"}`}>
-                Notifications
-              </h2>
-              <p className="text-slate-500 font-bold mt-0.5 text-sm">Stay updated</p>
-            </div>
-            <button className="text-indigo-600 font-black text-sm hover:underline underline-offset-4 decoration-2">
-              Mark all read
-            </button>
-          </div>
-          <div className="space-y-2 max-h-[50vh] overflow-y-auto no-scrollbar pr-1">
-            {NOTIFICATIONS.map((n) => (
-              <div
-                key={n.id}
-                className={`
-                  p-3 rounded-[18px] border flex gap-3
-                  transition-all cursor-pointer hover:translate-x-1
-                  ${darkMode
-                    ? "bg-[#0F0121] border-white/5 hover:bg-white/5"
-                    : "bg-[#F8FAFC] border-slate-100 shadow-sm hover:bg-white hover:border-indigo-100"
-                  }
-                `}
-              >
-                <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center text-white shrink-0 ${n.color}`}>
-                  {React.cloneElement(n.icon, { size: 16 })}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <h4 className={`font-black text-sm ${darkMode ? "text-white" : "text-slate-900"}`}>{n.title}</h4>
-                    {n.unread && <div className="w-2 h-2 bg-indigo-600 rounded-full shrink-0 mt-1 ml-2" />}
-                  </div>
-                  <p className="text-slate-500 text-xs font-bold mt-0.5 leading-relaxed">{n.desc}</p>
-                  <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1 block">{n.time}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </>,
-    document.body
-  ) : null;
-
-  return (
-    <div className="relative" ref={bellRef}>
-      <button
-        onClick={() => setShowNotif(!showNotif)}
-        className={`
-          p-4 rounded-[22px] ripple-btn shadow-sm
-          transition-all flex items-center justify-center
-          ${showNotif
-            ? "bg-indigo-600 text-white shadow-xl shadow-indigo-600/20"
-            : darkMode
-              ? "bg-[#1E0B3B] text-slate-300 hover:bg-white/5"
-              : "bg-white border border-slate-100 text-slate-600 hover:bg-slate-50"
-          }
-        `}
-      >
-        <Bell size={24} />
-      </button>
-      <span className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-rose-500 text-white text-[11px] font-black flex items-center justify-center rounded-full border-[3px] border-white shadow-lg">
-        3
-      </span>
-      {dropdown}
-    </div>
-  );
-}
 
 // ─── Desktop/Tablet Top Bar ───────────────────────────────────────────────────
 
 function TopBar({
   darkMode, navigate,
   searchQuery, setSearchQuery,
-  showNotif, setShowNotif,
   user, userInitials, isSearchActive, setIsSearchActive,
 }) {
   return (
@@ -665,12 +513,10 @@ function TopBar({
       </div>
 
       <div className="flex items-center gap-3 lg:gap-5 relative">
-        <NotificationPanel darkMode={darkMode} showNotif={showNotif} setShowNotif={setShowNotif} />
-
         {user ? (
           <div
             onClick={() => navigate("/profile")}
-            className="ml-1 lg:ml-2 cursor-pointer group"
+            className="cursor-pointer group"
           >
             <div className={`w-11 h-11 lg:w-14 lg:h-14 rounded-2xl ${user.profile_picture ? "" : "bg-indigo-600"} overflow-hidden flex items-center justify-center text-white text-sm lg:text-lg font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform`}>
               {user.profile_picture ? (
@@ -683,7 +529,7 @@ function TopBar({
         ) : (
           <button
             onClick={() => navigate("/login")}
-            className="ml-1 lg:ml-2 px-5 lg:px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl shadow-xl shadow-indigo-600/30 transition-all active:scale-95"
+            className="px-5 lg:px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-2xl shadow-xl shadow-indigo-600/30 transition-all active:scale-95"
           >
             Log In
           </button>
@@ -1540,7 +1386,7 @@ export default function Eventpage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [showNotif, setShowNotif] = useState(false);
+
   const [isSearchActive, setIsSearchActive] = useState(false);
 
   const [dynamicEvents, setDynamicEvents] = useState([]);
@@ -1640,8 +1486,6 @@ export default function Eventpage() {
             navigate={navigate}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
-            showNotif={showNotif}
-            setShowNotif={setShowNotif}
             user={user}
             userInitials={userInitials}
             isSearchActive={isSearchActive}
@@ -1709,58 +1553,7 @@ export default function Eventpage() {
       </main>
 
       {/* ── Mobile Bottom Navigation ── */}
-      <MobileBottomNav
-        onNotifPress={() => setShowNotif(!showNotif)}
-        unreadCount={3}
-      />
-
-      {/* Mobile notification panel (full-width positioned) */}
-      {showNotif && (
-        <div className="md:hidden fixed inset-x-4 top-16 z-[200]">
-          <div
-            className={`
-              rounded-[32px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] border
-              animate-in fade-in zoom-in-95 duration-300
-              ${darkMode ? "bg-[#1E0B3B] border-white/10" : "bg-white border-slate-100"}
-            `}
-          >
-            <div className="p-5">
-              <div className="flex justify-between items-center mb-5">
-                <h2 className={`text-xl font-black ${darkMode ? "text-white" : "text-slate-900"}`}>Notifications</h2>
-                <div className="flex items-center gap-3">
-                  <button className="text-indigo-600 font-black text-xs hover:underline">Mark all read</button>
-                  <button
-                    onClick={() => setShowNotif(false)}
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center ${darkMode ? "bg-white/5 text-slate-400" : "bg-slate-100 text-slate-500"}`}
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-3 max-h-[50vh] overflow-y-auto no-scrollbar">
-                {NOTIFICATIONS.map((n) => (
-                  <div
-                    key={n.id}
-                    className={`p-4 rounded-[20px] border flex gap-4 ${darkMode ? "bg-[#0F0121] border-white/5" : "bg-slate-50 border-slate-100"}`}
-                  >
-                    <div className={`w-10 h-10 rounded-[14px] flex items-center justify-center text-white shrink-0 ${n.color}`}>
-                      {React.cloneElement(n.icon, { size: 16 })}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start">
-                        <h4 className={`font-black text-sm ${darkMode ? "text-white" : "text-slate-900"}`}>{n.title}</h4>
-                        {n.unread && <div className="w-2 h-2 bg-indigo-600 rounded-full shrink-0 mt-1 ml-2" />}
-                      </div>
-                      <p className="text-slate-500 text-xs font-bold mt-0.5 leading-relaxed">{n.desc}</p>
-                      <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1 block">{n.time}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <MobileBottomNav />
     </div>
   );
 }
