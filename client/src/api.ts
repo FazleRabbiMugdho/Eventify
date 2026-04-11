@@ -54,27 +54,68 @@ class ApiClient {
   // --------- AUTH ---------
   
   async register(fullName: string, email: string, phone: string, password: string, profilePictureBase64?: string) {
-
-  try {
-
-    const response = await this.client.post("/api/register", {
-      user_name: fullName,
-      email,
-      phone,
-      password_hash: password,
-      profile_picture: profilePictureBase64
-    });
-
-    return response.data;
-
-  } catch (error) {
-
-    this.handleError(error);
-    throw error;
-
+    try {
+      const response = await this.client.post("/api/register", {
+        user_name: fullName,
+        email,
+        phone,
+        password_hash: password,
+        profile_picture: profilePictureBase64
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
   }
 
-}
+  async verifyOtp(email: string, otp: string) {
+    try {
+      const response = await this.client.post("/api/verify-otp", { email, otp });
+      const token = response.data.token;
+      if (token) {
+        this.setToken(token);
+      }
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  async resendOtp(email: string) {
+    try {
+      const response = await this.client.post("/api/resend-otp", { email });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  async forgotPassword(email: string) {
+    try {
+      const response = await this.client.post("/api/forgot-password", { email });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  async resetPassword(email: string, otp: string, password_hash: string) {
+    try {
+      const response = await this.client.post("/api/reset-password", { 
+        email, 
+        otp, 
+        password: password_hash // Backend expects 'password'
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
 
 
  async login(email: string, password: string): Promise<User | undefined> {
@@ -100,20 +141,23 @@ class ApiClient {
 
   async logout() {
     try {
-      const response = await this.client.post("/api/logout");
-
-      this.token = null;
-
-      localStorage.removeItem("token");
-
-      delete this.client.defaults.headers.common["Authorization"];
-
+      await this.client.post("/api/logout");
       toast.success("Logged out successfully");
-
-      return response.data;
-
     } catch (error) {
-      this.handleError(error);
+      // If unauthorized (401), it means the token was already expired/invalid
+      // We don't need to show an error since we are logging out anyway
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        console.warn("Logout: Token was already expired or invalid.");
+        toast.success("Logged out successfully");
+      } else {
+        this.handleError(error);
+      }
+    } finally {
+      // Always clear local state
+      this.token = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user"); // Also clear user data if present
+      delete this.client.defaults.headers.common["Authorization"];
     }
   }
 
@@ -245,6 +289,12 @@ class ApiClient {
       if (error.response) {
         const data = error.response.data as { message?: string; error?: string; errors?: Record<string, string[]> };
         const message = data.message || data.error || "Server error";
+
+        // Handle 401 Unauthorized/Unauthenticated (Don't show toast)
+        if (error.response.status === 401) {
+          console.warn("Auth Error (401) suppressed:", message);
+          return;
+        }
 
         // Handle Laravel validation errors (422)
         if (error.response.status === 422 && data.errors) {

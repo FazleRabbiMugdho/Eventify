@@ -89,8 +89,9 @@ export default function RegisterPage() {
       hasErrors = true;
     }
 
-    if (!form.email.includes("@") || !form.email.toLowerCase().endsWith(".com")) {
-      toast.error("Invalid email (must include @ and end with .com)");
+    const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{3}$/i;
+    if (!form.email.includes("@") || !emailRegex.test(form.email)) {
+      toast.error("Invalid email (must include @ and end with 3 characters after dot, e.g. .com, .org, .edu)");
       hasErrors = true;
     }
 
@@ -131,8 +132,8 @@ export default function RegisterPage() {
         form.profilePictureBase64
       );
       if (res) {
-        toast.success(res.message || "Registration successful!");
-        navigate("/login");
+        toast.success(res.message || "Registration successful! Please verify your email.");
+        navigate("/verify-otp", { state: { email: form.email } });
       }
     } catch (error) {
       console.error("Registration submission error:", error);

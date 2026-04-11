@@ -24,7 +24,15 @@ class User extends Authenticatable implements JWTSubject
         'password_hash',
         'google_id',
         'role_id',
-        'profile_picture'
+        'profile_picture',
+        'is_verified',
+        'otp',
+        'otp_expires_at'
+    ];
+
+    protected $casts = [
+        'otp_expires_at' => 'datetime',
+        'is_verified' => 'boolean',
     ];
 
     protected $hidden = [

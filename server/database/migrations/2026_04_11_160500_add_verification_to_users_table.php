@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddGoogleIdToUsersTable extends Migration
+class AddVerificationToUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +14,9 @@ class AddGoogleIdToUsersTable extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            $table->boolean('is_verified')->default(0)->after('profile_picture');
+            $table->string('otp', 6)->nullable()->after('is_verified');
+            $table->timestamp('otp_expires_at')->nullable()->after('otp');
         });
     }
 
@@ -26,7 +28,7 @@ class AddGoogleIdToUsersTable extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            $table->dropColumn(['is_verified', 'otp', 'otp_expires_at']);
         });
     }
 }

@@ -21,9 +21,12 @@ use App\Http\Controllers\API\ChatbotController;
 */
 
 // --- Auth ---
-// We point this to UserController@store to use our fixed registration logic
-Route::post('/register', [UserController::class, 'store']);
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::middleware('auth:api')->post('/logout', [AuthController::class, 'logout']);
 
 // --- Users ---
