@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import ApiClient from "../api";
 import toast from "react-hot-toast";
 import { ThemeContext } from "../App";
-import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, Camera } from "lucide-react";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -43,6 +43,7 @@ export default function RegisterPage() {
     phone: "",
     password: "",
     confirmPassword: "",
+    profilePictureBase64: null,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -111,7 +112,8 @@ export default function RegisterPage() {
         form.fullName,
         form.email,
         form.phone,
-        form.password
+        form.password,
+        form.profilePictureBase64
       );
       if (res) {
         toast.success(res.message || "Registration successful!");
@@ -123,8 +125,7 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
-    const backendUrl = import.meta.env.VITE_BACKEND_ENDPOINT || "http://localhost:8000";
-    window.location.href = `${backendUrl}/auth/google`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
   return (
@@ -215,6 +216,31 @@ export default function RegisterPage() {
             </h1>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+              
+              {/* Profile Picture Upload */}
+              <div className="flex justify-center mb-4">
+                <div className="relative group cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="profilePicUpload"
+                  />
+                  <label htmlFor="profilePicUpload" className="cursor-pointer block relative">
+                    <div className={`w-24 h-24 rounded-full border-4 flex items-center justify-center overflow-hidden transition-all ${darkMode ? "border-[#2d3650] bg-[#0F0121]" : "border-slate-200 bg-slate-100"}`}>
+                      {form.profilePictureBase64 ? (
+                        <img src={form.profilePictureBase64} alt="Profile preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera size={32} className={darkMode ? "text-slate-500" : "text-slate-400"} />
+                      )}
+                    </div>
+                    <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera size={24} className="text-white" />
+                    </div>
+                  </label>
+                </div>
+              </div>
 
               {/* Full Name */}
               <div

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../App";
 import { AuthContext } from "../context/AuthContext";
 import {
-  Calendar, MapPin, Users, DollarSign, Eye,
+  Calendar, MapPin, Users, DollarSign,
   TrendingUp, LayoutDashboard, PlusSquare, User,
   Bell, X, Search,
 } from "lucide-react";
@@ -16,7 +16,6 @@ import {
 import logoLight from '../assets/eventify-logo-light.png';
 import logoDark from '../assets/eventify-logo-dark.png';
 
-const api = new ApiClient();
 
 // ─── Logo SVG ─────────────────────────────────────────────────────────────────
 
@@ -132,6 +131,9 @@ export default function MyEvents() {
   const [attendingEvents, setAttendingEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Instantiate inside component so it always reads the latest token
+  const api = new ApiClient();
+
   const fetchData = async () => {
     if (!user) {
       setIsLoading(false);
@@ -167,16 +169,17 @@ export default function MyEvents() {
 
   const loaded = usePageLoad(500) && !isLoading;
 
-  const totalEvents = hostingEvents.length;
-  const totalAttendees = hostingEvents.reduce((acc, evt) => acc + (evt.tickets?.reduce((tAcc, t) => tAcc + (t.bookings?.length || 0), 0) || 0), 0);
-  const totalRevenue = hostingEvents.reduce((acc, evt) => acc + (evt.tickets?.reduce((tAcc, t) => tAcc + ((t.bookings?.length || 0) * Number(t.price || 0)), 0) || 0), 0);
+  // Compute stats based on whichever tab is active
+  const activeEvents = activeTab === "hosting" ? hostingEvents : attendingEvents;
+  const totalEvents = activeEvents.length;
+  const totalAttendees = activeEvents.reduce((acc, evt) => acc + (evt.tickets?.reduce((tAcc, t) => tAcc + (t.bookings?.length || 0), 0) || 0), 0);
+  const totalRevenue = activeEvents.reduce((acc, evt) => acc + (evt.tickets?.reduce((tAcc, t) => tAcc + ((t.bookings?.length || 0) * Number(t.price || 0)), 0) || 0), 0);
 
   const dynamicStats = useMemo(() => [
     { id: 1, label: "Total Events", value: String(totalEvents), icon: <TrendingUp size={24} /> },
     { id: 2, label: "Total Attendees", value: String(totalAttendees), icon: <Users size={24} /> },
     { id: 3, label: "Total Revenue", value: `BDT ${totalRevenue.toLocaleString()}`, icon: <DollarSign size={24} /> },
-    { id: 4, label: "Total Views", value: "0", icon: <Eye size={24} /> },
-  ], [totalEvents, totalAttendees, totalRevenue]);
+  ], [totalEvents, totalAttendees, totalRevenue, activeTab]);
 
   const formatEvent = (evt) => {
     const attendeesCount = evt.tickets?.reduce((acc, t) => acc + (t.bookings?.length || 0), 0) || 0;
@@ -240,8 +243,12 @@ export default function MyEvents() {
             </div>
             {user ? (
               <div onClick={() => navigate("/profile")} className="cursor-pointer group ml-2">
-                <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-sm sm:text-lg font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform">
-                  {userInitials}
+                <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-2xl ${user.profile_picture ? "" : "bg-indigo-600"} overflow-hidden flex items-center justify-center text-white text-sm sm:text-lg font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform`}>
+                  {user.profile_picture ? (
+                    <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    userInitials
+                  )}
                 </div>
               </div>
             ) : (
@@ -257,13 +264,13 @@ export default function MyEvents() {
 
         {/* Stats grid */}
         {!loaded ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
             {dynamicStats.map((stat) => (
               <SkeletonStatCard key={stat.id} darkMode={darkMode} gradient={stat.id === 1} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
             {dynamicStats.map((stat, i) => (
               <FadeIn key={stat.id} delay={i * 80}>
                 <div className={`p-5 sm:p-8 rounded-[28px] border transition-all hover:-translate-y-2 ${stat.id === 1 ? "bg-gradient-to-br from-indigo-600 to-blue-500 border-transparent" : darkMode ? "bg-[#1E0B3B] border-white/5" : "bg-white border-slate-100"}`}>
@@ -326,9 +333,6 @@ export default function MyEvents() {
 
                     <div className={`pt-5 sm:pt-8 border-t flex items-center justify-between ${darkMode ? "border-white/5" : "border-slate-50"}`}>
                       <div>
-                        <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 uppercase tracking-widest">
-                          <TrendingUp size={11} /> {event.growth} growth
-                        </div>
                         <div className="text-lg sm:text-2xl font-black mt-1 text-emerald-500">{event.revenue}</div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -340,9 +344,6 @@ export default function MyEvents() {
                             <X size={16} strokeWidth={3} />
                           </button>
                         )}
-                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-xs text-white ${event.id % 3 === 0 ? "bg-indigo-500" : event.id % 3 === 1 ? "bg-blue-500" : "bg-purple-500"}`}>
-                          {event.title.charAt(0)}
-                        </div>
                       </div>
                     </div>
                   </div>

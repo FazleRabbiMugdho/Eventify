@@ -6,7 +6,7 @@ import ApiClient from "../api";
 import {
   ChevronLeft, Mail, Phone, Moon, Sun, Bell,
   LogOut, Edit3, AlertCircle, LayoutDashboard, Calendar,
-  PlusSquare, User,
+  PlusSquare, User, Camera
 } from "lucide-react";
 import {
   AnimationStyles, FadeIn, ScalePop, InViewFade,
@@ -95,7 +95,8 @@ export default function Profile() {
   const [editData, setEditData] = useState({
     user_name: "",
     full_name: "",
-    phone: ""
+    phone: "",
+    profile_picture: ""
   });
 
   const [stats, setStats] = useState({
@@ -118,7 +119,8 @@ export default function Profile() {
         setEditData({
           user_name: data.user_name || "",
           full_name: data.full_name || "",
-          phone: data.phone || ""
+          phone: data.phone || "",
+          profile_picture: data.profile_picture || ""
         });
       }
 
@@ -141,7 +143,8 @@ export default function Profile() {
       setEditData({
         user_name: user?.user_name || "",
         full_name: user?.full_name || "",
-        phone: user?.phone || ""
+        phone: user?.phone || "",
+        profile_picture: user?.profile_picture || ""
       });
     }
     setIsEditing(!isEditing);
@@ -160,6 +163,17 @@ export default function Profile() {
       }
     } catch (err) {
       console.error("Failed to update profile", err);
+    }
+  };
+
+  const handleProfilePicChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditData({ ...editData, profile_picture: reader.result });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -230,11 +244,38 @@ export default function Profile() {
 
                   {/* Avatar */}
                   <div className="relative inline-block mb-5 sm:mb-6">
-                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 flex items-center justify-center bg-white/10 text-3xl sm:text-4xl font-black backdrop-blur-md">
-                      {user?.user_name?.charAt(0) || "U"}
-                    </div>
+                    {isEditing ? (
+                      <div className="relative group cursor-pointer w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 overflow-hidden flex items-center justify-center bg-white/10 backdrop-blur-md">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfilePicChange}
+                          className="hidden"
+                          id="profilePicEdit"
+                        />
+                        <label htmlFor="profilePicEdit" className="cursor-pointer w-full h-full flex flex-col items-center justify-center relative">
+                          {editData.profile_picture || user?.profile_picture ? (
+                            <img src={editData.profile_picture || user?.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="text-3xl sm:text-4xl font-black">{user?.user_name?.charAt(0) || "U"}</div>
+                          )}
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                            <Camera size={24} />
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 overflow-hidden flex items-center justify-center bg-white/10 text-3xl sm:text-4xl font-black backdrop-blur-md">
+                        {user?.profile_picture ? (
+                          <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <>{user?.user_name?.charAt(0) || "U"}</>
+                        )}
+                      </div>
+                    )}
+                    
                     {!isEditing && (
-                      <button className="absolute bottom-0 right-0 w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center text-indigo-600 shadow-lg hover:scale-110 transition-transform">
+                      <button onClick={() => setIsEditing(true)} className="absolute bottom-0 right-0 w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center text-indigo-600 shadow-lg hover:scale-110 transition-transform">
                         <Edit3 size={16} />
                       </button>
                     )}

@@ -62,12 +62,14 @@ export default function LoginPage() {
             user_name: profile.user_name || "",
             email: profile.email || "",
             phone: profile.phone || "",
+            profile_picture: profile.profile_picture || "",
           });
         } else {
           login({
             user_name: response.user_name || "",
             email: response.email || "",
             phone: response.phone || "",
+            profile_picture: response.profile_picture || "",
           });
         }
 
@@ -79,8 +81,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    const backendUrl = import.meta.env.VITE_BACKEND_ENDPOINT || "http://localhost:8000";
-    window.location.href = `${backendUrl}/auth/google`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
   return (
