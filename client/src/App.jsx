@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import React, { createContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { ThemeProvider, ThemeContext } from './context/ThemeContext';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import EventsPage from './pages/Eventspage';
@@ -12,35 +13,6 @@ import Profile from './pages/Profile';
 import AuthCallback from './pages/AuthCallback';
 import PaymentSuccess from './pages/PaymentSuccess';
 
-// 1. CREATE THE THEME CONTEXT
-export const ThemeContext = createContext();
-
-// 2. THEME PROVIDER COMPONENT
-const ThemeProvider = ({ children }) => {
-  const [darkMode, setDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (darkMode) {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [darkMode]);
-
-  return (
-    <ThemeContext.Provider value={{ darkMode, setDarkMode }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-};
-
-// 3. LAYOUT COMPONENT TO KEEP SIDEBAR PERSISTENT
 const AppLayout = ({ children }) => {
   const location = useLocation();
   // Exclude sidebar from login and register pages

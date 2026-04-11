@@ -15,7 +15,7 @@ class EventController extends Controller
 
     public function index()
     {
-        return Event::with(['category', 'venue', 'tickets'])->get();
+        return Event::with(['category', 'venue', 'tickets.bookings'])->get();
     }
 
     public function store(Request $request)
@@ -111,7 +111,7 @@ class EventController extends Controller
 
     public function show($id)
     {
-        return Event::with(['category', 'venue', 'tickets'])->find($id);
+        return Event::with(['category', 'venue', 'tickets.bookings'])->find($id);
     }
 
     public function update(Request $request, $id)

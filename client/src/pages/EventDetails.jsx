@@ -1,6 +1,6 @@
 import React, { useState, useContext, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ThemeContext } from "../App";
+import { ThemeContext } from "../context/ThemeContext";
 import { AuthContext } from "../context/AuthContext";
 import {
   Calendar, Clock, MapPin, Users, ArrowLeft,
@@ -210,6 +210,7 @@ export default function EventDetails() {
             location: data.venue?.location || "TBD",
             category: data.category?.category_name || "General",
             price: data.tickets && data.tickets.length > 0 ? data.tickets[0].price : 0,
+            attendees: data.tickets?.reduce((acc, t) => acc + (t.bookings?.length || 0), 0) || 0,
             image: data.image_url
               ? (data.image_url.startsWith('http') ? data.image_url : `${secrets.backendEndpoint}/storage/${data.image_url}`)
               : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80"
@@ -416,6 +417,7 @@ export default function EventDetails() {
                       <DetailItem icon={<Calendar />} label="Date" value={event.date} dm={dm} />
                       <DetailItem icon={<Clock />} label="Time" value={event.time} dm={dm} />
                       <DetailItem icon={<MapPin />} label="Location" value={event.location} dm={dm} />
+                      <DetailItem icon={<Users />} label="Attendance" value={`${event.attendees} Attending`} dm={dm} />
                     </div>
 
                     <div className={`h-px mb-5 sm:mb-6 ${dm ? "bg-white/5" : "bg-slate-100"}`} />

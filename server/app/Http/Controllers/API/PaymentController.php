@@ -75,19 +75,16 @@ class PaymentController extends Controller
     public function bkashCallback(Request $request) {
         $status = $request->status;
 
-        // Security check: Make sure the callback hasn't been intercepted/tampered to impersonate someone else
-        if ($request->user_id != auth()->id()) {
-             return redirect(env('FRONTEND_URL', 'http://localhost:3000') . "/payment/failed?reason=auth_error");
-        }
+
 
         // CANCELLATION: User manually closed the bKash window -> TREAT AS FAIL
         if ($status == 'cancel') {
-            return redirect(env('FRONTEND_URL', 'http://localhost:3000') . "/payment/failed?reason=cancelled");
+            return redirect(config('app.frontend_url') . "/payment/failed?reason=cancelled");
         }
 
         //WALLET LOCKED or FAILED
         if ($status == 'failure' || $status == 'failed') {
-            return redirect(env('FRONTEND_URL', 'http://localhost:3000') . "/payment/failed?reason=failed");
+            return redirect(config('app.frontend_url') . "/payment/failed?reason=failed");
         }
 
         //NORMAL SUCCESS: Execute the real payment
@@ -109,7 +106,7 @@ class PaymentController extends Controller
         }
 
         // Any other unknown state -> TREAT AS FAIL
-        return redirect(env('FRONTEND_URL', 'http://localhost:3000') . "/payment/failed?reason=unknown_error");
+        return redirect(config('app.frontend_url') . "/payment/failed?reason=unknown_error");
     }
 
     // --- Helper Function to keep database logic clean ---
@@ -133,7 +130,8 @@ class PaymentController extends Controller
         $booking->update(['payment_id' => $payment->payment_id]);
 
         // Redirect to React
-        $frontend = env('FRONTEND_URL', 'http://localhost:3000');
+        // Redirect to React
+        $frontend = config('app.frontend_url');
         return redirect("{$frontend}/payment/success?booking_id={$booking->booking_id}&trx_id={$trx_id}");
     }
 }

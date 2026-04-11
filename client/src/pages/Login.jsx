@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import ApiClient from "../api";
 import { AuthContext } from "../context/AuthContext";
-import { ThemeContext } from "../App";
+import { ThemeContext } from "../context/ThemeContext";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {

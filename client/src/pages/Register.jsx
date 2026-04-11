@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import ApiClient from "../api";
 import toast from "react-hot-toast";
-import { ThemeContext } from "../App";
+import { ThemeContext } from "../context/ThemeContext";
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, Camera } from "lucide-react";
 
 export default function RegisterPage() {
