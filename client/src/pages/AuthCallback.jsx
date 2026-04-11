@@ -28,6 +28,7 @@ export default function AuthCallback() {
                         user_name: profile.user_name || "",
                         email: profile.email || "",
                         phone: profile.phone || "",
+                        profile_picture: profile.profile_picture || "",
                     });
                 }
                 navigate("/");

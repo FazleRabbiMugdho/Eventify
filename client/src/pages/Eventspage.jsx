@@ -527,7 +527,7 @@ function MobileBottomNav({ darkMode, navigate, onNotifPress, onProfilePress, unr
 
 // ─── Mobile Top Bar ───────────────────────────────────────────────────────────
 
-function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, setIsSearchActive }) {
+function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, setIsSearchActive, user, navigate }) {
   return (
     <div className="md:hidden mb-6">
       {/* Brand row */}
@@ -739,8 +739,12 @@ function TopBar({
             onClick={() => navigate("/profile")}
             className="ml-1 lg:ml-2 cursor-pointer group"
           >
-            <div className="w-11 h-11 lg:w-14 lg:h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-sm lg:text-lg font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform">
-              {userInitials}
+            <div className={`w-11 h-11 lg:w-14 lg:h-14 rounded-2xl ${user.profile_picture ? "" : "bg-indigo-600"} overflow-hidden flex items-center justify-center text-white text-sm lg:text-lg font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform`}>
+              {user.profile_picture ? (
+                <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                userInitials
+              )}
             </div>
           </div>
         ) : (
@@ -1691,6 +1695,8 @@ export default function Eventpage() {
             setSearchQuery={setSearchQuery}
             isSearchActive={isSearchActive}
             setIsSearchActive={setIsSearchActive}
+            user={user}
+            navigate={navigate}
           />
         </FadeIn>
 

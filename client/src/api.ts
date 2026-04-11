@@ -11,6 +11,7 @@ export interface User {
   phone?: string;
   password?: string;
   token?: string;
+  profile_picture?: string;
 }
 
 export interface Event {
@@ -52,7 +53,7 @@ class ApiClient {
 
   // --------- AUTH ---------
   
-  async register(fullName: string, email: string, phone: string, password: string) {
+  async register(fullName: string, email: string, phone: string, password: string, profilePictureBase64?: string) {
 
   try {
 
@@ -60,7 +61,8 @@ class ApiClient {
       user_name: fullName,
       email,
       phone,
-      password_hash: password
+      password_hash: password,
+      profile_picture: profilePictureBase64
     });
 
     return response.data;

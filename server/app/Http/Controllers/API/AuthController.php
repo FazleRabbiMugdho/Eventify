@@ -46,13 +46,51 @@ class AuthController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
+        $profilePictureUrl = null;
+
+        // Handle image upload to Cloudinary (Reusing Cloudinary logic style from EventController)
+        if (!empty($request->profile_picture)) {
+            $imageData = $request->profile_picture;
+            
+            // If the incoming data is not a data URI, format it
+            if (!preg_match('/^data:image\/(\w+);base64,/', $imageData) && !str_starts_with($imageData, 'http')) {
+                $imageData = "data:image/png;base64," . $imageData;
+            }
+
+            if (str_starts_with($imageData, 'http')) {
+                $profilePictureUrl = $imageData;
+            } else {
+                $timestamp = time();
+                $apiSecret = env('CLOUDINARY_API_SECRET');
+                $signature = sha1("timestamp={$timestamp}{$apiSecret}");
+
+                try {
+                    $response = \Illuminate\Support\Facades\Http::post("https://api.cloudinary.com/v1_1/" . env('CLOUDINARY_CLOUD_NAME') . "/image/upload", [
+                        'file' => $imageData,
+                        'api_key' => env('CLOUDINARY_API_KEY'),
+                        'timestamp' => $timestamp,
+                        'signature' => $signature,
+                    ]);
+
+                    if ($response->successful()) {
+                        $profilePictureUrl = $response->json('secure_url');
+                    } else {
+                        \Log::error("Cloudinary Upload Failed in Register", $response->json());
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Cloudinary Exception in Register", ['msg' => $e->getMessage()]);
+                }
+            }
+        }
+
         $user = User::create([
             'user_name' => $request->user_name,
             'email' => $request->email,
             'phone' => $request->phone,
             // Uses whichever password field the frontend sent
             'password_hash' => Hash::make($request->password ?? $request->password_hash),
-            'role_id' => 1
+            'role_id' => 1,
+            'profile_picture' => $profilePictureUrl
         ]);
 
         return response()->json([
