@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Services\BrevoMailService;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -95,12 +96,12 @@ class AuthController extends Controller
             'otp_expires_at' => $otpExpiresAt
         ]);
 
-        // Send OTP Email
+        // Send OTP Email via Brevo HTTP API (SMTP blocked on Railway)
         try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp, $user->user_name));
+            (new BrevoMailService())->sendOtp($user->email, $user->user_name, $otp);
         } catch (\Exception $e) {
             \Log::error("Failed to send OTP email: " . $e->getMessage());
-            // Optionally: handle mail failure (e.g., still allow registration but inform user)
+            // Still allow registration even if email fails
         }
 
         return response()->json([
@@ -178,9 +179,9 @@ class AuthController extends Controller
         $user->otp_expires_at = now()->addMinutes(10);
         $user->save();
 
-        // Send Email
+        // Send Email via Brevo HTTP API (SMTP blocked on Railway)
         try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpMail($otp, $user->user_name));
+            (new BrevoMailService())->sendOtp($user->email, $user->user_name, $otp);
         } catch (\Exception $e) {
             \Log::error("Failed to resend OTP email: " . $e->getMessage());
             return response()->json(['message' => 'Failed to send email. Please try again later.'], 500);
@@ -208,9 +209,9 @@ class AuthController extends Controller
         $user->otp_expires_at = now()->addMinutes(10);
         $user->save();
 
-        // Send Email
+        // Send Email via Brevo HTTP API (SMTP blocked on Railway)
         try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\PasswordResetMail($otp, $user->user_name));
+            (new BrevoMailService())->sendPasswordReset($user->email, $user->user_name, $otp);
         } catch (\Exception $e) {
             \Log::error("Failed to send password reset email: " . $e->getMessage());
             return response()->json(['message' => 'Failed to send reset email. Please try again.'], 500);
