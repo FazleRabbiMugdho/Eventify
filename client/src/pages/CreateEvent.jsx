@@ -9,6 +9,7 @@ import {
   Bell, User, Sparkles, Wand2,
 } from "lucide-react";
 import { AnimationStyles, FadeIn, SlideIn, usePageLoad, SkeletonCreateEvent } from "../components/ui";
+import MobileBottomNav from "../components/MobileBottomNav";
 import ApiClient from "../api";
 import logoLight from '../assets/eventify-logo-light.png';
 import logoDark from '../assets/eventify-logo-dark.png';
@@ -233,37 +234,6 @@ function TabletSidebar({ darkMode, navigate }) {
         <button className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all ripple-btn bg-indigo-600 text-white shadow-xl shadow-indigo-600/30"><PlusSquare size={20} /></button>
       </nav>
     </aside>
-  );
-}
-
-// ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
-
-function MobileBottomNav({ darkMode, navigate, user }) {
-  return (
-    <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-4 pt-3 pb-4 border-t backdrop-blur-xl ${darkMode ? "bg-[#0F0121]/95 border-white/5" : "bg-white/95 border-slate-100"}`}>
-      <button onClick={() => navigate("/")} className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><LayoutDashboard size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Explore</span>
-      </button>
-      <button onClick={() => navigate("/my-events")} className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><Calendar size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Events</span>
-      </button>
-      <button className="flex flex-col items-center gap-1 px-3 py-1 -mt-6">
-        <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-[20px] flex items-center justify-center shadow-xl shadow-indigo-600/40 border-4 border-white dark:border-[#0F0121]"><PlusSquare size={22} className="text-white" /></div>
-        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider mt-1">Create</span>
-      </button>
-      <button onClick={() => navigate("/")} className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><Bell size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Alerts</span>
-      </button>
-      {user && (
-        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-1 px-3 py-1">
-          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><User size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
-          <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Profile</span>
-        </button>
-      )}
-    </nav>
   );
 }
 
@@ -641,7 +611,7 @@ export default function CreateEvent() {
         </div>
       </main>
 
-      <MobileBottomNav darkMode={darkMode} navigate={navigate} user={user} />
+      <MobileBottomNav />
     </div>
   );
 }

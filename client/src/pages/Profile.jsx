@@ -12,6 +12,7 @@ import {
   AnimationStyles, FadeIn, ScalePop, InViewFade,
   CountUp, SkeletonProfileCard, SkeletonInfoSection, usePageLoad,
 } from "../components/ui";
+import MobileBottomNav from "../components/MobileBottomNav";
 
 // ─── Logo SVG ─────────────────────────────────────────────────────────────────
 
@@ -29,56 +30,6 @@ function LogoIcon() {
         fill="white" stroke="white" strokeWidth="0.5"
       />
     </svg>
-  );
-}
-
-// ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
-
-function MobileBottomNav({ darkMode, navigate }) {
-  return (
-    <nav
-      className={`
-        md:hidden fixed bottom-0 left-0 right-0 z-50
-        flex items-center justify-around px-4 pt-3 pb-4
-        border-t backdrop-blur-xl
-        ${darkMode ? "bg-[#0F0121]/95 border-white/5" : "bg-white/95 border-slate-100"}
-      `}
-    >
-      <button onClick={() => navigate("/")} className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}>
-          <LayoutDashboard size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} />
-        </div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Explore</span>
-      </button>
-
-      <button onClick={() => navigate("/my-events")} className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}>
-          <Calendar size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} />
-        </div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Events</span>
-      </button>
-
-      <button onClick={() => navigate("/create-event")} className="flex flex-col items-center gap-1 px-3 py-1 -mt-6">
-        <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-[20px] flex items-center justify-center shadow-xl shadow-indigo-600/40 border-4 border-white dark:border-[#0F0121]">
-          <PlusSquare size={22} className="text-white" />
-        </div>
-        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider mt-1">Create</span>
-      </button>
-
-      <button onClick={() => navigate("/")} className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}>
-          <Bell size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} />
-        </div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Alerts</span>
-      </button>
-
-      <button className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-indigo-600 shadow-lg shadow-indigo-600/30">
-          <User size={18} className="text-white" />
-        </div>
-        <span className="text-[10px] font-black uppercase tracking-wider text-indigo-500">Profile</span>
-      </button>
-    </nav>
   );
 }
 
@@ -507,7 +458,7 @@ export default function Profile() {
         </div>
       </div>
 
-      <MobileBottomNav darkMode={darkMode} navigate={navigate} />
+      <MobileBottomNav />
 
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">

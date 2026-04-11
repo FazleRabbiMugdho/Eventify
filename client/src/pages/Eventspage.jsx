@@ -14,6 +14,7 @@ import {
   AnimationStyles, FadeIn, FadeInGroup, InViewFade,
   SkeletonCarousel, SkeletonEventGrid, usePageLoad,
 } from "../components/ui";
+import MobileBottomNav from "../components/MobileBottomNav";
 
 import ApiClient from "../api";
 import { secrets } from "../secrets";
@@ -439,95 +440,7 @@ function TabletSidebar({ darkMode, navigate }) {
   );
 }
 
-// ─── Mobile Bottom Navigation ─────────────────────────────────────────────────
-
-function MobileBottomNav({ darkMode, navigate, onNotifPress, onProfilePress, unreadCount, user }) {
-  return (
-    <nav
-      className={`
-        bottom-nav md:hidden
-        fixed bottom-0 left-0 right-0 z-50
-        flex items-center justify-around
-        px-4 pt-3 pb-4
-        border-t backdrop-blur-xl
-        ${darkMode
-          ? "bg-[#0F0121]/95 border-white/5"
-          : "bg-white/95 border-slate-100"
-        }
-      `}
-    >
-      {/* Explore — active */}
-      <button
-        onClick={() => navigate("/")}
-        className="flex flex-col items-center gap-1 px-3 py-1"
-      >
-        <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30">
-          <LayoutDashboard size={18} className="text-white" />
-        </div>
-        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider">Explore</span>
-      </button>
-
-      {/* My Events */}
-      <button
-        onClick={() => navigate("/my-events")}
-        className="flex flex-col items-center gap-1 px-3 py-1"
-      >
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}>
-          <Calendar size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} />
-        </div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-          My Events
-        </span>
-      </button>
-
-      {/* Create */}
-      <button
-        onClick={() => navigate("/create-event")}
-        className="flex flex-col items-center gap-1 px-3 py-1 -mt-6"
-      >
-        <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-[20px] flex items-center justify-center shadow-xl shadow-indigo-600/40 border-4 border-white dark:border-[#0F0121]">
-          <PlusSquare size={22} className="text-white" />
-        </div>
-        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider mt-1">Create</span>
-      </button>
-
-      {/* Notifications */}
-      <button
-        onClick={onNotifPress}
-        className="flex flex-col items-center gap-1 px-3 py-1 relative"
-      >
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}>
-          <Bell size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} />
-        </div>
-        {unreadCount > 0 && (
-          <span className="absolute top-0 right-1 w-5 h-5 bg-rose-500 text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white dark:border-[#0F0121]">
-            {unreadCount}
-          </span>
-        )}
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-          Alerts
-        </span>
-      </button>
-
-      {/* Profile — only when logged in */}
-      {user && (
-        <button
-          onClick={onProfilePress}
-          className="flex flex-col items-center gap-1 px-3 py-1"
-        >
-          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}>
-            <User size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} />
-          </div>
-          <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-            Profile
-          </span>
-        </button>
-      )}
-    </nav>
-  );
-}
-
-// ─── Mobile Top Bar ───────────────────────────────────────────────────────────
+// ─── Notification Panel ───────────────────────────────────────────────────────
 
 function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, setIsSearchActive, user, navigate }) {
   return (
@@ -1287,13 +1200,13 @@ function SearchOverlay({
           {showFilters ? <X size={20} /> : <Filter size={20} />}
         </button>
 
-        <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar flex-1 py-1 sm:py-2">
+        <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-4 flex-1 py-2">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`
-                px-4 sm:px-10 py-2.5 sm:py-4 rounded-xl sm:rounded-2xl
+                px-4 sm:px-10 py-2 sm:py-4 rounded-xl sm:rounded-2xl
                 text-[11px] sm:text-[12px] font-black uppercase
                 tracking-[0.1em] sm:tracking-[0.15em]
                 transition-all whitespace-nowrap shadow-sm ripple-btn
@@ -1797,12 +1710,8 @@ export default function Eventpage() {
 
       {/* ── Mobile Bottom Navigation ── */}
       <MobileBottomNav
-        darkMode={darkMode}
-        navigate={navigate}
         onNotifPress={() => setShowNotif(!showNotif)}
-        onProfilePress={() => navigate(user ? "/profile" : "/login")}
         unreadCount={3}
-        user={user}
       />
 
       {/* Mobile notification panel (full-width positioned) */}
