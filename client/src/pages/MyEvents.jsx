@@ -1,6 +1,6 @@
 import React, { useState, useContext, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ThemeContext } from "../App";
+import { ThemeContext } from "../context/ThemeContext";
 import { AuthContext } from "../context/AuthContext";
 import {
   Calendar, MapPin, Users, DollarSign,
@@ -188,9 +188,9 @@ export default function MyEvents() {
     // Improved image path resolution from the conflict version
     let imageUrl = img1;
     if (evt.image_url) {
-      imageUrl = evt.image_url.startsWith('http') ? evt.image_url : `http://localhost:8000/storage/${evt.image_url}`;
+      imageUrl = evt.image_url.startsWith('http') ? evt.image_url : `${secrets.backendEndpoint}/storage/${evt.image_url}`;
     } else if (evt.cover_picture) {
-      imageUrl = evt.cover_picture.startsWith('http') ? evt.cover_picture : `http://localhost:8000/storage/${evt.cover_picture.replace('public/', '')}`;
+      imageUrl = evt.cover_picture.startsWith('http') ? evt.cover_picture : `${secrets.backendEndpoint}/storage/${evt.cover_picture.replace('public/', '')}`;
     }
 
     return {

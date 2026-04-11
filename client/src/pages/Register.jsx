@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import ApiClient from "../api";
 import toast from "react-hot-toast";
-import { ThemeContext } from "../App";
+import { ThemeContext } from "../context/ThemeContext";
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, Camera } from "lucide-react";
 
 export default function RegisterPage() {
@@ -50,6 +50,21 @@ export default function RegisterPage() {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Image size must be less than 2MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, profilePictureBase64: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const getPasswordStrength = (pass) => {
@@ -125,7 +140,8 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+    const backendUrl = import.meta.env.VITE_BACKEND_ENDPOINT || "http://localhost:8000";
+    window.location.href = `${backendUrl}/auth/google`;
   };
 
   return (

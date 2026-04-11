@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useContext, useRef, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { ThemeContext } from "../App";
+import { ThemeContext } from "../context/ThemeContext";
 import { AuthContext } from "../context/AuthContext";
 import {
   LayoutDashboard, Calendar, PlusSquare, Search, Bell,
