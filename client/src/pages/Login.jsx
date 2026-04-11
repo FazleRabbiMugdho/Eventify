@@ -76,6 +76,11 @@ export default function LoginPage() {
         navigate("/");
       }
     } catch (err) {
+      if (err.response?.status === 403 && err.response?.data?.not_verified) {
+        toast.error("Please verify your account");
+        navigate("/verify-otp", { state: { email: err.response.data.email } });
+        return;
+      }
       setError(err.response?.data?.message || err.message || "Login failed");
     }
   };
@@ -236,9 +241,12 @@ export default function LoginPage() {
                   </div>
                   <span className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-600"}`}>Remember me</span>
                 </label>
-                <a href="#" className={`text-sm hover:text-indigo-500 transition-colors font-medium ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+                <Link 
+                  to="/forgot-password" 
+                  className={`text-sm hover:text-indigo-500 transition-colors font-medium ${darkMode ? "text-slate-400" : "text-slate-600"}`}
+                >
                   Forgot Password?
-                </a>
+                </Link>
               </div>
 
               {/* Error */}
