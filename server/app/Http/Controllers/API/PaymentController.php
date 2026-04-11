@@ -28,6 +28,11 @@ class PaymentController extends Controller
             'app_secret' => env('BKASH_APP_SECRET'),
         ]);
         
+        if (!$response->successful()) {
+            \Log::error('bKash Token Grant Failed', ['status' => $response->status(), 'body' => $response->json()]);
+            return ['error' => 'Token Grant Failed', 'details' => $response->json()];
+        }
+
         return $response->json('id_token'); 
     }
 
@@ -35,7 +40,7 @@ class PaymentController extends Controller
         $request->validate([
             'ticket_id' => 'required',
             'customer_name' => 'required|string|max:255',
-            'customer_email' => ['required', 'email', 'regex:/^.+@.+\.com$/i'],
+            'customer_email' => ['required', 'email'],
             'customer_phone' => ['required', 'string', 'size:11', 'regex:/^01[3-9]\d{8}$/'],
         ]);
 
@@ -47,11 +52,16 @@ class PaymentController extends Controller
         // Always get the amount from the database, do not trust client input
         $amount = $ticket->price;
 
-        $token = $this->getToken();
+        $tokenResponse = $this->getToken();
 
-        if (!$token) {
-            return response()->json(['error' => 'Could not connect to bKash API.'], 400);
+        if (is_array($tokenResponse) && isset($tokenResponse['error'])) {
+            return response()->json([
+                'error' => 'Could not connect to bKash API.',
+                'debug' => $tokenResponse['details']
+            ], 400);
         }
+
+        $token = $tokenResponse;
 
         $response = Http::withHeaders([
             'Authorization' => "Bearer {$token}",
@@ -78,7 +88,10 @@ class PaymentController extends Controller
             return response()->json(['bkashURL' => $result['bkashURL']]);
         }
 
-        return response()->json(['error' => 'bKash Create Payment Failed'], 400);
+        return response()->json([
+            'error' => 'bKash Create Payment Failed',
+            'debug' => $result
+        ], 400);
     }
 
     public function bkashCallback(Request $request) {
