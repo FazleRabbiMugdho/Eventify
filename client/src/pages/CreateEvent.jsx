@@ -238,7 +238,7 @@ function TabletSidebar({ darkMode, navigate }) {
 
 // ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
 
-function MobileBottomNav({ darkMode, navigate }) {
+function MobileBottomNav({ darkMode, navigate, user }) {
   return (
     <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-4 pt-3 pb-4 border-t backdrop-blur-xl ${darkMode ? "bg-[#0F0121]/95 border-white/5" : "bg-white/95 border-slate-100"}`}>
       <button onClick={() => navigate("/")} className="flex flex-col items-center gap-1 px-3 py-1">
@@ -257,10 +257,12 @@ function MobileBottomNav({ darkMode, navigate }) {
         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><Bell size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
         <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Alerts</span>
       </button>
-      <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><User size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Profile</span>
-      </button>
+      {user && (
+        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-1 px-3 py-1">
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><User size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
+          <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Profile</span>
+        </button>
+      )}
     </nav>
   );
 }
@@ -639,7 +641,7 @@ export default function CreateEvent() {
         </div>
       </main>
 
-      <MobileBottomNav darkMode={darkMode} navigate={navigate} />
+      <MobileBottomNav darkMode={darkMode} navigate={navigate} user={user} />
     </div>
   );
 }
