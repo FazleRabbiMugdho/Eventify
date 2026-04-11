@@ -27,15 +27,17 @@ class GoogleController extends Controller
         $user = User::where('email', $googleUser->email)->first();
 
         if ($user) {
-            if (!$user->google_id) {
-                $user->update(['google_id' => $googleUser->id]);
-            }
+            $user->update([
+                'google_id' => $user->google_id ?? $googleUser->id,
+                'profile_picture' => $googleUser->avatar
+            ]);
         } else {
             $user = User::create([
                 'user_name' => $googleUser->name,
                 'email'     => $googleUser->email,
                 'google_id' => $googleUser->id,
                 'role_id'   => 2, // Default role
+                'profile_picture' => $googleUser->avatar,
                 // password_hash and phone remain null
             ]);
         }

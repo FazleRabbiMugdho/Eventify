@@ -4,10 +4,9 @@ import { ThemeContext } from "../App";
 import { AuthContext } from "../context/AuthContext";
 import ApiClient from "../api";
 import {
-  ChevronLeft, Mail, Phone, MapPin, Moon, Sun,
-  Bell, ShieldCheck, HelpCircle, LogOut, Edit3,
-  Settings, AlertCircle, LayoutDashboard, Calendar,
-  PlusSquare, User,
+  ChevronLeft, Mail, Phone, Moon, Sun, Bell,
+  LogOut, Edit3, AlertCircle, LayoutDashboard, Calendar,
+  PlusSquare, User, Camera
 } from "lucide-react";
 import {
   AnimationStyles, FadeIn, ScalePop, InViewFade,
@@ -92,32 +91,91 @@ export default function Profile() {
   const { user, setUser, logout } = useContext(AuthContext);
   const loaded = usePageLoad(400);
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    user_name: "",
+    full_name: "",
+    phone: "",
+    profile_picture: ""
+  });
+
+  const [stats, setStats] = useState({
+    hosted: 0,
+    attended: 0
+  });
+
   const api = new ApiClient();
 
-  const profileStats = [
-    { label: "Hosted", value: "12" },
-    { label: "Attended", value: "28" },
-    { label: "Following", value: "145" },
-  ];
-
-  const moreOptions = [
-    { icon: <Bell size={20} />, label: "Notifications" },
-    { icon: <ShieldCheck size={20} />, label: "Privacy & Security" },
-    { icon: <HelpCircle size={20} />, label: "Help & Support" },
-  ];
-
-  // ── Fetch full profile from API (gets phone + any extra fields) ─────────────
+  // ── Fetch full profile and dynamic stats ─────────────
   useEffect(() => {
     if (!user) return;
-    const loadProfile = async () => {
+
+    const loadProfileAndStats = async () => {
+      // Fetch profile
       const data = await api.getProfile();
       if (data) {
         setUser(data);
         localStorage.setItem("user", JSON.stringify(data));
+        setEditData({
+          user_name: data.user_name || "",
+          full_name: data.full_name || "",
+          phone: data.phone || "",
+          profile_picture: data.profile_picture || ""
+        });
+      }
+
+      // Fetch stats
+      const eventData = await api.getMyEvents();
+      if (eventData) {
+        setStats({
+          hosted: eventData.hosting.length,
+          attended: eventData.attending.length
+        });
       }
     };
-    loadProfile();
+
+    loadProfileAndStats();
   }, []);
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      // Reset if canceling
+      setEditData({
+        user_name: user?.user_name || "",
+        full_name: user?.full_name || "",
+        phone: user?.phone || "",
+        profile_picture: user?.profile_picture || ""
+      });
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleSave = async () => {
+    try {
+      const id = user?.user_id || user?.id;
+      if (!id) return;
+
+      const updated = await api.updateUser(id, editData);
+      if (updated) {
+        setUser(updated);
+        localStorage.setItem("user", JSON.stringify(updated));
+        setIsEditing(false);
+      }
+    } catch (err) {
+      console.error("Failed to update profile", err);
+    }
+  };
+
+  const handleProfilePicChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditData({ ...editData, profile_picture: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // ── Logout ─────────────────────────────────────────────────────────────────
   const handleLogout = async () => {
@@ -186,12 +244,41 @@ export default function Profile() {
 
                   {/* Avatar */}
                   <div className="relative inline-block mb-5 sm:mb-6">
-                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 flex items-center justify-center bg-white/10 text-3xl sm:text-4xl font-black backdrop-blur-md">
-                      {user?.user_name?.charAt(0) || "U"}
-                    </div>
-                    <button className="absolute bottom-0 right-0 w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center text-indigo-600 shadow-lg hover:scale-110 transition-transform">
-                      <Edit3 size={16} />
-                    </button>
+                    {isEditing ? (
+                      <div className="relative group cursor-pointer w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 overflow-hidden flex items-center justify-center bg-white/10 backdrop-blur-md">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfilePicChange}
+                          className="hidden"
+                          id="profilePicEdit"
+                        />
+                        <label htmlFor="profilePicEdit" className="cursor-pointer w-full h-full flex flex-col items-center justify-center relative">
+                          {editData.profile_picture || user?.profile_picture ? (
+                            <img src={editData.profile_picture || user?.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="text-3xl sm:text-4xl font-black">{user?.user_name?.charAt(0) || "U"}</div>
+                          )}
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                            <Camera size={24} />
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 overflow-hidden flex items-center justify-center bg-white/10 text-3xl sm:text-4xl font-black backdrop-blur-md">
+                        {user?.profile_picture ? (
+                          <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <>{user?.user_name?.charAt(0) || "U"}</>
+                        )}
+                      </div>
+                    )}
+                    
+                    {!isEditing && (
+                      <button onClick={() => setIsEditing(true)} className="absolute bottom-0 right-0 w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center text-indigo-600 shadow-lg hover:scale-110 transition-transform">
+                        <Edit3 size={16} />
+                      </button>
+                    )}
                   </div>
 
                   <h2 className="text-xl sm:text-2xl font-black mb-1">
@@ -202,25 +289,28 @@ export default function Profile() {
                   </p>
 
                   {/* Stats with CountUp */}
-                  <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-7 sm:mb-10">
-                    {profileStats.map((stat, i) => (
-                      <div
-                        key={i}
-                        className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl py-3 sm:py-4 border border-white/10"
-                      >
-                        <p className="text-lg sm:text-xl font-black">
-                          <CountUp value={stat.value} delay={200 + i * 100} duration={1000} />
-                        </p>
-                        <p className="text-[9px] sm:text-[10px] uppercase font-black text-indigo-200 tracking-widest">
-                          {stat.label}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-7 sm:mb-10">
+                    <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl py-3 sm:py-4 border border-white/10">
+                      <p className="text-lg sm:text-xl font-black">
+                        <CountUp value={stats.hosted} delay={200} duration={1000} />
+                      </p>
+                      <p className="text-[9px] sm:text-[10px] uppercase font-black text-indigo-200 tracking-widest">
+                        Hosted
+                      </p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl py-3 sm:py-4 border border-white/10">
+                      <p className="text-lg sm:text-xl font-black">
+                        <CountUp value={stats.attended} delay={300} duration={1000} />
+                      </p>
+                      <p className="text-[9px] sm:text-[10px] uppercase font-black text-indigo-200 tracking-widest">
+                        Attended
+                      </p>
+                    </div>
                   </div>
 
-                  <button className="w-full py-3.5 sm:py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl sm:rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all border border-white/10">
-                    <Settings size={16} /> Settings
-                  </button>
+                  <div className="w-full py-3.5 sm:py-4 bg-white/5 rounded-xl sm:rounded-2xl font-black text-xs text-indigo-200 uppercase tracking-widest border border-white/5 opacity-50">
+                    Premium Member
+                  </div>
                 </div>
               </ScalePop>
             )}
@@ -245,44 +335,114 @@ export default function Profile() {
                       ${darkMode ? "bg-[#1E0B3B] border-white/5" : "bg-white border-slate-100"}
                     `}
                   >
-                    <h3 className="text-base sm:text-lg font-black mb-6 sm:mb-8">
-                      Personal Information
-                    </h3>
+                    <div className="flex justify-between items-center mb-6 sm:mb-8">
+                      <h3 className="text-base sm:text-lg font-black">
+                        Personal Information
+                      </h3>
+                      {!isEditing ? (
+                        <button
+                          onClick={() => setIsEditing(true)}
+                          className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 text-indigo-600 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-500/20 transition-all"
+                        >
+                          <Edit3 size={14} /> Edit
+                        </button>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleEditToggle}
+                            className="px-4 py-2 bg-slate-500/10 text-slate-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-500/20 transition-all"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleSave}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-8">
 
-                      <div className="flex items-center gap-4 sm:gap-5">
+                      <div className="flex items-start gap-4 sm:gap-5">
+                        <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0">
+                          <User size={20} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                            Full Name
+                          </p>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editData.full_name}
+                              onChange={(e) => setEditData({ ...editData, full_name: e.target.value })}
+                              className={`w-full mt-1 bg-transparent border-b-2 border-indigo-500/30 focus:border-indigo-500 outline-none font-bold text-sm py-1 transition-all ${darkMode ? "text-white" : "text-slate-900"}`}
+                              placeholder="Enter full name"
+                            />
+                          ) : (
+                            <p className="font-bold text-sm truncate">{user?.full_name || "—"}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-4 sm:gap-5">
                         <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0">
                           <Mail size={20} />
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                            Email
+                            Email (Fixed)
                           </p>
-                          <p className="font-bold text-sm truncate">{user?.email || "—"}</p>
+                          <p className={`font-bold text-sm truncate mt-1 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+                            {user?.email || "—"}
+                          </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4 sm:gap-5">
+                      <div className="flex items-start gap-4 sm:gap-5">
                         <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0">
                           <Phone size={20} />
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest">
                             Phone
                           </p>
-                          <p className="font-bold text-sm">{user?.phone || "—"}</p>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editData.phone}
+                              onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                              className={`w-full mt-1 bg-transparent border-b-2 border-indigo-500/30 focus:border-indigo-500 outline-none font-bold text-sm py-1 transition-all ${darkMode ? "text-white" : "text-slate-900"}`}
+                              placeholder="Enter phone number"
+                            />
+                          ) : (
+                            <p className="font-bold text-sm">{user?.phone || "—"}</p>
+                          )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4 sm:gap-5 sm:col-span-2">
+                      <div className="flex items-start gap-4 sm:gap-5">
                         <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0">
-                          <MapPin size={20} />
+                          <Edit3 size={20} />
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                            Location
+                            User Name
                           </p>
-                          <p className="font-bold text-sm">Not specified</p>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editData.user_name}
+                              onChange={(e) => setEditData({ ...editData, user_name: e.target.value })}
+                              className={`w-full mt-1 bg-transparent border-b-2 border-indigo-500/30 focus:border-indigo-500 outline-none font-bold text-sm py-1 transition-all ${darkMode ? "text-white" : "text-slate-900"}`}
+                              placeholder="Enter username"
+                            />
+                          ) : (
+                            <p className="font-bold text-sm truncate">{user?.user_name || "—"}</p>
+                          )}
                         </div>
                       </div>
 
@@ -312,7 +472,6 @@ export default function Profile() {
                         </div>
                       </div>
 
-                      {/* Toggle */}
                       <button
                         onClick={() => setDarkMode(!darkMode)}
                         className={`
@@ -328,36 +487,6 @@ export default function Profile() {
                           `}
                         />
                       </button>
-                    </div>
-                  </section>
-                </InViewFade>
-
-                {/* More options */}
-                <InViewFade delay={160}>
-                  <section
-                    className={`
-                      p-5 sm:p-10 rounded-[28px] sm:rounded-[40px] shadow-sm border
-                      ${darkMode ? "bg-[#1E0B3B] border-white/5" : "bg-white border-slate-100"}
-                    `}
-                  >
-                    <h3 className="text-base sm:text-lg font-black mb-5 sm:mb-8">More Options</h3>
-                    <div className="space-y-2 sm:space-y-4">
-                      {moreOptions.map((opt, i) => (
-                        <div
-                          key={i}
-                          className={`
-                            flex items-center gap-4 sm:gap-5 p-4 sm:p-5
-                            rounded-xl sm:rounded-2xl cursor-pointer
-                            transition-all hover:translate-x-1
-                            ${darkMode ? "hover:bg-white/5" : "hover:bg-slate-50"}
-                          `}
-                        >
-                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0">
-                            {React.cloneElement(opt.icon, { size: 18 })}
-                          </div>
-                          <span className="font-bold text-sm sm:text-base">{opt.label}</span>
-                        </div>
-                      ))}
                     </div>
                   </section>
                 </InViewFade>
@@ -378,10 +507,8 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ── Mobile bottom nav ── */}
       <MobileBottomNav darkMode={darkMode} navigate={navigate} />
 
-      {/* ── Logout confirm modal ── */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div
@@ -389,7 +516,6 @@ export default function Profile() {
             onClick={() => setShowLogoutConfirm(false)}
           />
 
-          {/* Mobile: bottom sheet | Desktop: centered modal */}
           <ScalePop>
             <div
               className={`
@@ -400,7 +526,6 @@ export default function Profile() {
                 ${darkMode ? "bg-[#1E0B3B] border-white/10" : "bg-white border-slate-100"}
               `}
             >
-              {/* Drag handle — mobile only */}
               <div className="sm:hidden flex justify-center mb-5">
                 <div className={`w-10 h-1 rounded-full ${darkMode ? "bg-white/20" : "bg-slate-200"}`} />
               </div>

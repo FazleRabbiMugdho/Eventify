@@ -204,14 +204,15 @@ export default function EventDetails() {
             id: data.event_id,
             title: data.event_name,
             description: data.description,
+            startDateTime: data.start_date_time,
             date: data.start_date_time ? data.start_date_time.split(' ')[0] : "TBD",
             time: data.start_date_time && data.start_date_time.includes(' ') ? data.start_date_time.split(' ')[1] : '',
             location: data.venue?.location || "TBD",
             category: data.category?.category_name || "General",
             price: data.tickets && data.tickets.length > 0 ? data.tickets[0].price : 0,
             image: data.image_url 
-              ? `${secrets.backendEndpoint}/storage/${data.image_url}` 
-              : "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070"
+              ? (data.image_url.startsWith('http') ? data.image_url : `${secrets.backendEndpoint}/storage/${data.image_url}`)
+              : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80"
           };
           setEventData(mapped);
         }
@@ -227,6 +228,32 @@ export default function EventDetails() {
   const event = eventData;
   const dm = darkMode;
   const loaded = usePageLoad(400);
+
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    if (!event || !event.startDateTime) return;
+    const updateCountdown = () => {
+      const now = new Date();
+      const eventTime = new Date(event.startDateTime);
+      const diff = eventTime - now;
+      if (diff <= 0) {
+        setTimeLeft("Event Started");
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / 1000 / 60) % 60);
+      let text = "Starts in ";
+      if (days > 0) text += `${days}d `;
+      if (hours > 0) text += `${hours}h `;
+      if (days === 0 && hours === 0) text += `${mins}m`;
+      setTimeLeft(text.trim());
+    };
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000);
+    return () => clearInterval(interval);
+  }, [event]);
 
   const userInitials = useMemo(() => {
     if (!user) return null;
@@ -292,8 +319,12 @@ export default function EventDetails() {
           </button>
           {user ? (
             <div onClick={() => navigate("/profile")} className="cursor-pointer group">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-xs sm:text-sm font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform">
-                {userInitials}
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl ${user.profile_picture ? "" : "bg-indigo-600"} overflow-hidden flex items-center justify-center text-white text-xs sm:text-sm font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform`}>
+                {user.profile_picture ? (
+                  <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  userInitials
+                )}
               </div>
             </div>
           ) : (
@@ -331,8 +362,8 @@ export default function EventDetails() {
                       className="w-full h-[220px] sm:h-[320px] lg:h-[420px] object-cover"
                     />
                     <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6">
-                      <div className="bg-[#0F0121]/75 backdrop-blur-xl px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-white font-black text-xs sm:text-sm border border-white/10 shadow-xl">
-                        ⏱ Starts in 109d 4h
+                      <div className="bg-[#0F0121]/80 backdrop-blur-xl px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-white font-black text-xs sm:text-sm border border-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.6)]">
+                        ⏱ {timeLeft || "Starts soon"}
                       </div>
                     </div>
                     <div className="absolute top-4 sm:top-6 left-4 sm:left-6">

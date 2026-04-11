@@ -527,7 +527,7 @@ function MobileBottomNav({ darkMode, navigate, onNotifPress, onProfilePress, unr
 
 // ─── Mobile Top Bar ───────────────────────────────────────────────────────────
 
-function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, setIsSearchActive }) {
+function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, setIsSearchActive, user, navigate }) {
   return (
     <div className="md:hidden mb-6">
       {/* Brand row */}
@@ -542,6 +542,14 @@ function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, s
             </span>
           </div>
         </div>
+        {!user && (
+          <button
+            onClick={() => navigate("/login")}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
+          >
+            Log In
+          </button>
+        )}
       </div>
 
       {/* Search */}
@@ -743,8 +751,12 @@ function TopBar({
             onClick={() => navigate("/profile")}
             className="ml-1 lg:ml-2 cursor-pointer group"
           >
-            <div className="w-11 h-11 lg:w-14 lg:h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-sm lg:text-lg font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform">
-              {userInitials}
+            <div className={`w-11 h-11 lg:w-14 lg:h-14 rounded-2xl ${user.profile_picture ? "" : "bg-indigo-600"} overflow-hidden flex items-center justify-center text-white text-sm lg:text-lg font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform`}>
+              {user.profile_picture ? (
+                <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                userInitials
+              )}
             </div>
           </div>
         ) : (
@@ -1630,7 +1642,7 @@ export default function Eventpage() {
             location: e.venue?.location || "TBD",
             price: e.tickets && e.tickets.length > 0 ? e.tickets[0].price : 0,
             image: e.image_url 
-              ? `${secrets.backendEndpoint}/storage/${e.image_url}` 
+              ? (e.image_url.startsWith('http') ? e.image_url : `${secrets.backendEndpoint}/storage/${e.image_url}`)
               : "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1200&q=80"
           }));
           
@@ -1695,6 +1707,8 @@ export default function Eventpage() {
             setSearchQuery={setSearchQuery}
             isSearchActive={isSearchActive}
             setIsSearchActive={setIsSearchActive}
+            user={user}
+            navigate={navigate}
           />
         </FadeIn>
 

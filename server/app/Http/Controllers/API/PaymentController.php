@@ -33,9 +33,16 @@ class PaymentController extends Controller
 
     public function createBkashPayment(Request $request) {
         $request->validate([
-            'amount' => 'required',
             'ticket_id' => 'required'
         ]);
+
+        $ticket = \App\Models\Ticket::find($request->ticket_id);
+        if (!$ticket) {
+            return response()->json(['error' => 'Invalid ticket ID.'], 404);
+        }
+
+        // Always get the amount from the database, do not trust client input
+        $amount = $ticket->price;
 
         $token = $this->getToken();
 
@@ -50,7 +57,7 @@ class PaymentController extends Controller
             'mode' => '0011',
             'payerReference' => ' ',
             'callbackURL' => route('bkash.callback', ['ticket_id' => $request->ticket_id, 'user_id' => auth()->id()]),
-            'amount' => $request->amount,
+            'amount' => $amount,
             'currency' => 'BDT',
             'intent' => 'sale',
             'merchantInvoiceNumber' => 'INV' . uniqid()
@@ -68,19 +75,19 @@ class PaymentController extends Controller
     public function bkashCallback(Request $request) {
         $status = $request->status;
 
+        // Security check: Make sure the callback hasn't been intercepted/tampered to impersonate someone else
+        if ($request->user_id != auth()->id()) {
+             return redirect(env('FRONTEND_URL', 'http://localhost:3000') . "/payment/failed?reason=auth_error");
+        }
+
         // CANCELLATION: User manually closed the bKash window -> TREAT AS FAIL
         if ($status == 'cancel') {
             return redirect(env('FRONTEND_URL', 'http://localhost:3000') . "/payment/failed?reason=cancelled");
         }
 
-        //WALLET LOCKED: bKash forces a failure redirect -> TREAT AS SUCCESS
+        //WALLET LOCKED or FAILED
         if ($status == 'failure' || $status == 'failed') {
-            \Log::info("bKash Wallet Locked - Treating as success for testing.");
-            
-            $fakeAmount = 500; // Mock ticket price
-            $fakeTrxId = 'TRX_LOCKED_' . strtoupper(uniqid());
-            
-            return $this->savePaymentAndRedirect($request, $fakeAmount, $fakeTrxId);
+            return redirect(env('FRONTEND_URL', 'http://localhost:3000') . "/payment/failed?reason=failed");
         }
 
         //NORMAL SUCCESS: Execute the real payment
