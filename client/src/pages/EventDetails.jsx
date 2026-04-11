@@ -139,7 +139,7 @@ function TabletSidebar({ dm, navigate }) {
   );
 }
 
-function MobileBottomNav({ dm, navigate }) {
+function MobileBottomNav({ dm, navigate, user }) {
   return (
     <nav
       className={`
@@ -173,12 +173,14 @@ function MobileBottomNav({ dm, navigate }) {
         </div>
         <span className={`text-[10px] font-black uppercase tracking-wider ${dm ? "text-slate-500" : "text-slate-400"}`}>Alerts</span>
       </button>
-      <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${dm ? "bg-white/5" : "bg-slate-100"}`}>
-          <User size={18} className={dm ? "text-slate-400" : "text-slate-500"} />
-        </div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${dm ? "text-slate-500" : "text-slate-400"}`}>Profile</span>
-      </button>
+      {user && (
+        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-1 px-3 py-1">
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${dm ? "bg-white/5" : "bg-slate-100"}`}>
+            <User size={18} className={dm ? "text-slate-400" : "text-slate-500"} />
+          </div>
+          <span className={`text-[10px] font-black uppercase tracking-wider ${dm ? "text-slate-500" : "text-slate-400"}`}>Profile</span>
+        </button>
+      )}
     </nav>
   );
 }

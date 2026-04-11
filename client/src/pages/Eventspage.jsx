@@ -441,7 +441,7 @@ function TabletSidebar({ darkMode, navigate }) {
 
 // ─── Mobile Bottom Navigation ─────────────────────────────────────────────────
 
-function MobileBottomNav({ darkMode, navigate, onNotifPress, onProfilePress, unreadCount }) {
+function MobileBottomNav({ darkMode, navigate, onNotifPress, onProfilePress, unreadCount, user }) {
   return (
     <nav
       className={`
@@ -509,18 +509,20 @@ function MobileBottomNav({ darkMode, navigate, onNotifPress, onProfilePress, unr
         </span>
       </button>
 
-      {/* Profile */}
-      <button
-        onClick={onProfilePress}
-        className="flex flex-col items-center gap-1 px-3 py-1"
-      >
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}>
-          <User size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} />
-        </div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
-          Profile
-        </span>
-      </button>
+      {/* Profile — only when logged in */}
+      {user && (
+        <button
+          onClick={onProfilePress}
+          className="flex flex-col items-center gap-1 px-3 py-1"
+        >
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}>
+            <User size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} />
+          </div>
+          <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
+            Profile
+          </span>
+        </button>
+      )}
     </nav>
   );
 }
@@ -538,6 +540,24 @@ function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, s
           onClick={() => navigate('/')}
           className="w-32 cursor-pointer hover:opacity-80 transition-opacity duration-200"
         />
+        {!user ? (
+          <button
+            onClick={() => navigate('/login')}
+            className="px-4 py-2 bg-indigo-600 text-white text-sm font-black rounded-2xl shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 transition-colors"
+          >
+            Log In
+          </button>
+        ) : (
+          <div onClick={() => navigate('/profile')} className="cursor-pointer group">
+            <div className={`w-10 h-10 rounded-2xl ${user.profile_picture ? "" : "bg-indigo-600"} overflow-hidden flex items-center justify-center text-white text-sm font-black shadow-xl shadow-indigo-600/30 group-hover:scale-105 transition-transform`}>
+              {user.profile_picture ? (
+                <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                user.user_name?.slice(0, 2).toUpperCase() || user.full_name?.slice(0, 2).toUpperCase() || "?"
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Search */}
@@ -1780,8 +1800,9 @@ export default function Eventpage() {
         darkMode={darkMode}
         navigate={navigate}
         onNotifPress={() => setShowNotif(!showNotif)}
-        onProfilePress={() => navigate("/profile")}
+        onProfilePress={() => navigate(user ? "/profile" : "/login")}
         unreadCount={3}
+        user={user}
       />
 
       {/* Mobile notification panel (full-width positioned) */}

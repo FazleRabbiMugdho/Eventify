@@ -86,7 +86,7 @@ function TabletSidebar({ darkMode, navigate }) {
 
 // ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
 
-function MobileBottomNav({ darkMode, navigate, onNotifPress, unreadCount = 0 }) {
+function MobileBottomNav({ darkMode, navigate, onNotifPress, unreadCount = 0, user }) {
   return (
     <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-4 pt-3 pb-4 border-t backdrop-blur-xl ${darkMode ? "bg-[#0F0121]/95 border-white/5" : "bg-white/95 border-slate-100"}`}>
       <button onClick={() => navigate("/")} className="flex flex-col items-center gap-1 px-3 py-1">
@@ -110,10 +110,12 @@ function MobileBottomNav({ darkMode, navigate, onNotifPress, unreadCount = 0 }) 
         )}
         <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Alerts</span>
       </button>
-      <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-1 px-3 py-1">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><User size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Profile</span>
-      </button>
+      {user && (
+        <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-1 px-3 py-1">
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><User size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
+          <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Profile</span>
+        </button>
+      )}
     </nav>
   );
 }
@@ -200,7 +202,7 @@ export default function MyEvents() {
       date: new Date(evt.start_date_time).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       location: evt.venue?.location || evt.venue?.name || "TBD",
       attendees: attendeesCount,
-      revenue: `Total Revenue ${revenueSum.toLocaleString()}`,
+      revenue: `Tickets Sold: ${attendeesCount}`,
       growth: "+0%",
       category: evt.category?.category_name || "General",
       price: evt.tickets && evt.tickets.length > 0 ? `BDT ${evt.tickets[0].price}` : "Free",
@@ -363,7 +365,7 @@ export default function MyEvents() {
         </button>
       </div>
 
-      <MobileBottomNav darkMode={darkMode} navigate={navigate} onNotifPress={() => setShowNotif(!showNotif)} unreadCount={3} />
+      <MobileBottomNav darkMode={darkMode} navigate={navigate} onNotifPress={() => setShowNotif(!showNotif)} unreadCount={3} user={user} />
     </div>
   );
 }
