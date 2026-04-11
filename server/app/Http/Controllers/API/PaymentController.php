@@ -33,7 +33,10 @@ class PaymentController extends Controller
 
     public function createBkashPayment(Request $request) {
         $request->validate([
-            'ticket_id' => 'required'
+            'ticket_id' => 'required',
+            'customer_name' => 'required|string|max:255',
+            'customer_email' => ['required', 'email', 'regex:/^.+@.+\.com$/i'],
+            'customer_phone' => ['required', 'string', 'size:11', 'regex:/^01[3-9]\d{8}$/'],
         ]);
 
         $ticket = \App\Models\Ticket::find($request->ticket_id);
@@ -56,7 +59,13 @@ class PaymentController extends Controller
         ])->post("{$this->baseUrl}/tokenized/checkout/create", [
             'mode' => '0011',
             'payerReference' => ' ',
-            'callbackURL' => route('bkash.callback', ['ticket_id' => $request->ticket_id, 'user_id' => auth()->id()]),
+            'callbackURL' => route('bkash.callback', [
+                'ticket_id' => $request->ticket_id,
+                'user_id' => auth()->id(),
+                'customer_name' => $request->customer_name,
+                'customer_email' => $request->customer_email,
+                'customer_phone' => $request->customer_phone,
+            ]),
             'amount' => $amount,
             'currency' => 'BDT',
             'intent' => 'sale',
@@ -116,7 +125,10 @@ class PaymentController extends Controller
             'booking_date' => Carbon::now()->toDateTimeString(),
             'user_id' => $request->user_id,
             'ticket_id' => $request->ticket_id,
-            'payment_id' => 0 
+            'payment_id' => 0,
+            'customer_name' => $request->customer_name,
+            'customer_email' => $request->customer_email,
+            'customer_phone' => $request->customer_phone,
         ]);
 
         // Create Payment
@@ -129,7 +141,6 @@ class PaymentController extends Controller
         // Update Link
         $booking->update(['payment_id' => $payment->payment_id]);
 
-        // Redirect to React
         // Redirect to React
         $frontend = config('app.frontend_url');
         return redirect("{$frontend}/payment/success?booking_id={$booking->booking_id}&trx_id={$trx_id}");
