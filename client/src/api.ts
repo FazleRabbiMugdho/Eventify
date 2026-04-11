@@ -1,50 +1,271 @@
 import axios, { AxiosInstance } from 'axios';
-import { secrets } from './secrets';
-import toast from 'react-hot-toast';
+import { secrets } from "./secrets";
+import toast from "react-hot-toast";
+
+export interface User {
+  id?: number;
+  user_id?: number; // Backend sometimes uses user_id
+  user_name?: string;
+  full_name?: string;
+  email: string;
+  phone?: string;
+  password?: string;
+  token?: string;
+  profile_picture?: string;
+}
+
+export interface Event {
+  event_id?: number;
+  event_name: string;
+  description: string;
+  start_date_time: string;
+  image_url?: string;
+}
 
 class ApiClient {
   private client: AxiosInstance;
+  private token: string | null;
 
   constructor() {
+    this.token = localStorage.getItem("token");
+
     this.client = axios.create({
       baseURL: secrets.backendEndpoint,
-      headers: {
-        'Content-Type': 'application/json',
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json"
       },
     });
+
+    if (this.token) {
+      this.client.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
+    }
   }
 
-  // currently, only fetches 1 session greater than current time
+  
+  setToken(token: string) {
+    this.token = token;
+
+    localStorage.setItem("token", token);
+
+    this.client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }
+
+  // --------- AUTH ---------
+  
+  async register(fullName: string, email: string, phone: string, password: string, profilePictureBase64?: string) {
+    try {
+      const response = await this.client.post("/api/register", {
+        user_name: fullName,
+        email,
+        phone,
+        password_hash: password,
+        profile_picture: profilePictureBase64
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  async verifyOtp(email: string, otp: string) {
+    try {
+      const response = await this.client.post("/api/verify-otp", { email, otp });
+      const token = response.data.token;
+      if (token) {
+        this.setToken(token);
+      }
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  async resendOtp(email: string) {
+    try {
+      const response = await this.client.post("/api/resend-otp", { email });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  async forgotPassword(email: string) {
+    try {
+      const response = await this.client.post("/api/forgot-password", { email });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  async resetPassword(email: string, otp: string, password_hash: string) {
+    try {
+      const response = await this.client.post("/api/reset-password", { 
+        email, 
+        otp, 
+        password: password_hash // Backend expects 'password'
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+
+ async login(email: string, password: string): Promise<User | undefined> {
+    try {
+
+      const response = await this.client.post("/api/login", { email, password });
+
+      const token = response.data.token;
+
+      if (token) {
+        this.setToken(token);
+      }
+
+      toast.success("Login successful");
+
+      return response.data;
+
+    } catch (error) {
+       this.handleError(error);
+    }
+ }
+
+
+  async logout() {
+    try {
+      await this.client.post("/api/logout");
+      toast.success("Logged out successfully");
+    } catch (error) {
+      // If unauthorized (401), it means the token was already expired/invalid
+      // We don't need to show an error since we are logging out anyway
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        console.warn("Logout: Token was already expired or invalid.");
+        toast.success("Logged out successfully");
+      } else {
+        this.handleError(error);
+      }
+    } finally {
+      // Always clear local state
+      this.token = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user"); // Also clear user data if present
+      delete this.client.defaults.headers.common["Authorization"];
+    }
+  }
+
+  // --------- USER ---------
+
+  async getProfile(): Promise<User | undefined> {
+    try {
+      const response = await this.client.get("/api/profile");
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async updateUser(id: number, data: Partial<User>): Promise<User | undefined> {
+    try {
+      const response = await this.client.put(`/api/users/${id}`, data);
+      toast.success("Profile updated successfully");
+      return response.data.user;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  // --------- EVENTS ---------
+
+  async getEvents(): Promise<Event[] | undefined> {
+    try {
+      const response = await this.client.get("/api/events");
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async getMyEvents(): Promise<{ hosting: Event[], attending: Event[] } | undefined> {
+    try {
+      const response = await this.client.get("/api/my-events");
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async getEvent(id: number): Promise<Event | undefined> {
+    try {
+      const response = await this.client.get(`/api/events/${id}`);
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async createEvent(event_name: string, description: string, start_date_time: string, venue: string, category: string, price: number | string, image_base64?: string) {
+    try {
+      const response = await this.client.post("/api/events", {
+        event_name,
+        description,
+        start_date_time,
+        venue,
+        category,
+        price,
+        image_base64: image_base64 || null
+      });
+
+      toast.success("Event created successfully");
+
+      return response.data;
+
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  // --------- SESSIONS & ATTENDANCE ---------
+
+  async createSession(sessionName: string, duration: number, username?: string, password?: string) {
+    try {
+      const response = await this.client.post("/api/sessions", { sessionName, duration, username, password });
+      toast.success("Session created successfully");
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
   async getSession() {
     try {
-      const response = await this.client.get('/api/session');
+      const response = await this.client.get("/api/sessions/current");
       return response.data;
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  async createSession(name: string, duration: number, username: string, password: string) {
+  async viewSessions(username?: string, password?: string) {
     try {
-      if (!username || !password) {
-        toast.error('Credentials are required');
-        return;
-      }
-      const response = await this.client.post('/api/session', { name, duration, username, password });
+      const response = await this.client.post("/api/sessions/view", { username, password });
       return response.data;
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  async updateSession(session_id: number, active: boolean, username: string, password: string) {
+  async updateSession(sessionId: number, isActive: boolean, username?: string, password?: string) {
     try {
-      if (!username || !password) {
-        toast.error('Credentials are required');
-        return;
-      }
-
-      const response = await this.client.put('/api/session', { session_id, active, username, password });
+      const response = await this.client.put(`/api/sessions/${sessionId}`, { isActive, username, password });
+      toast.success("Session updated successfully");
       return response.data;
     } catch (error) {
       this.handleError(error);
@@ -53,40 +274,84 @@ class ApiClient {
 
   async submitAttendance(roll: number) {
     try {
-      const response = await this.client.post('/api/attendance', { roll });
+      const response = await this.client.post("/api/attendance", { roll });
+      toast.success("Attendance submitted");
       return response.data;
     } catch (error) {
       this.handleError(error);
     }
   }
+  
+ // --------- ERROR HANDLING ---------
 
-  async viewSessions(username: string, password: string) {
-    try {
-      if (!username || !password) {
-        toast.error('Credentials are required');
-        return;
+  private handleError(error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        const data = error.response.data as { message?: string; error?: string; errors?: Record<string, string[]> };
+        const message = data.message || data.error || "Server error";
+
+        // Handle 401 Unauthorized/Unauthenticated (Don't show toast)
+        if (error.response.status === 401) {
+          console.warn("Auth Error (401) suppressed:", message);
+          return;
+        }
+
+        // Handle Laravel validation errors (422)
+        if (error.response.status === 422 && data.errors) {
+          Object.values(data.errors).forEach((errorGroup: string[]) => {
+            if (Array.isArray(errorGroup)) {
+              errorGroup.forEach((msg) => toast.error(msg));
+            }
+          });
+          return; // Stop here as we've already shown all specific toasts
+        } else if (error.response.status === 422 && !data.message) {
+          // If data is just the errors object directly
+          const errors = data as unknown as Record<string, string[]>;
+          Object.values(errors).forEach((errorGroup: string[]) => {
+            if (Array.isArray(errorGroup)) {
+              errorGroup.forEach((msg) => toast.error(msg));
+            }
+          });
+          return;
+        }
+
+        console.error("API Error:", message);
+        toast.error(message);
+      } else if (error.request) {
+        console.error("No response from server", error.request);
+        toast.error("Server not responding. Check Laravel server.");
       }
-      const response = await this.client.post('/api/sessions', { username, password });
+    } else if (error instanceof Error) {
+      console.error("Request Error:", error.message);
+      toast.error(error.message);
+    } else {
+      console.error("Unknown Error:", error);
+      toast.error("An unexpected error occurred.");
+    }
+  }
+
+ // --------- AI CHATBOT ---------
+  
+  // sending user text to our laravel backend which then talks to gemini
+  async chatWithAI(message: string): Promise<{ reply: string } | undefined> {
+    try {
+      const response = await this.client.post("/api/chat", { message });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  // --------- AI EVENT GENERATOR ---------
+  
+  async generateEvent(keywords: string): Promise<{ title: string, description: string, tags: string } | undefined> {
+    try {
+      const response = await this.client.post("/api/generate-event", { keywords });
       return response.data;
     } catch (error) {
       this.handleError(error);
     }
-  }
-
-  // Handle common errors
-  handleError(error: any) {
-    if (error.response) {
-      // Server responded with a status other than 2xx
-      console.error(`API Error: ${error.response.status} - ${error.response.data.message}`);
-    } else if (error.request) {
-      // Request was made, but no response was received
-      console.error('API Error: No response received', error.request);
-    } else {
-      // Something went wrong while setting up the request
-      console.error('API Error:', error.message);
-    }
-
-    toast.error(error.message || 'Something went wrong');
   }
 }
 

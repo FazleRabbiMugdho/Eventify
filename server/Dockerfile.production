@@ -1,0 +1,31 @@
+FROM php:8.1-cli
+
+#Install system dependencies & PHP extensions
+RUN apt-get update && apt-get install -y \
+    libpng-dev libonig-dev libxml2-dev zip unzip git curl \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+#Setup Composer
+ENV COMPOSER_ALLOW_SUPERUSER=1
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+#Set Working Directory
+WORKDIR /var/www/html
+
+#Copy the Eventify server code
+COPY . .
+
+#Install Laravel dependencies
+RUN composer install --no-interaction --optimize-autoloader --ignore-platform-reqs
+
+#Create missing directories and fix permissions for Laravel
+RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/testing storage/framework/views storage/logs bootstrap/cache \
+    && chmod -R 777 storage bootstrap/cache
+
+#Railway Port Binding
+ENV PORT=8080
+EXPOSE ${PORT}
+
+#Start Laravel's built-in server on the dynamic Railway port
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT}

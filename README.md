@@ -1,12 +1,12 @@
 # Eventify
 A Scalable REST-Driven Event Marketplace
 ## Team Members
-| Name | Student ID | Role |
-|------|------------|------|
-| Fazle Rabbi Mugdho | 20230104002 | Project Lead |
-| Auniruddho Halder | 20230104006 | Frontend Developer |
-| Mahim Abdullah Rianto | 20230104015 | Frontend Developer |
-| Partha Saha | 20230104017 | Backend Developer |
+| Name | Student ID | Role | Email |
+|------|------------|------|-------|
+| Fazle Rabbi Mugdho | 20230104002 | Project Lead | fazle.rabbi.mugdho@gmail.com |
+| Auniruddho Halder | 20230104006 | Frontend Developer | auniruddhohalder284@gmail.com |
+| Mahim Abdullah Rianto | 20230104015 | Frontend Developer | mahim.cse.20230104015@aust.edu |
+| Partha Saha | 20230104017 | Backend Developer | parthapartha509@gmail.com |
 
 
 ## Objective
@@ -59,25 +59,25 @@ The primary goal is to build a high-concurrency, full-stack web application that
 ## Project Milestones
 **Phase 1: Foundation & Authentication**
 
- - Initial React Setup
-
- - Basic Event CRUD
-
-- User Profiles & Role Logic
+ - Laravel + React Integration
+ - Log In, Register Page Addition 
+ - Event Management System (CRUD)
+ - CI/CD Pipeline Setup
+ - User Profiles & Role Logic
 
 **Phase 2: Core Logic & Transactions**
 
-- Organizer Dashboard (CRUD)
-
-- Order History
+- Authentication System & User Management
+- Database Design & Migrations
+- Event System Foundation
+- Payment Method Integration
+- Responsive Design (Mobile & Tablet)
+- UI Enhancements (Login/Register, Light-Dark Mode) & Skeleton Loading
+- AI Chatbot Integration
+- Docker & Infrastructure Setup
 
 **Phase 3: Advanced Features & Optimization**
 
-- AI Integration
-
+- QR Code Generation
 - Admin Command Center
-
 - Automated E-Ticket Generation
-
-
-
