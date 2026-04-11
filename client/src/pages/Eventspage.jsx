@@ -17,6 +17,8 @@ import {
 
 import ApiClient from "../api";
 import { secrets } from "../secrets";
+import logoDark from '../assets/eventify-logo-dark.png';
+import logoLight from '../assets/eventify-logo-light.png';
 
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -349,18 +351,13 @@ function DesktopSidebar({ darkMode, navigate }) {
         ${darkMode ? "bg-[#0F0121] border-white/5" : "bg-white border-slate-100"}
       `}
     >
-      <div className="p-8 flex items-center gap-4">
-        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/20 shrink-0">
-          <LogoIcon />
-        </div>
-        <div className="flex flex-col">
-          <span className={`text-2xl font-black tracking-tighter ${darkMode ? "text-white" : "text-indigo-600"}`}>
-            Eventify
-          </span>
-          <span className={`text-xs font-bold ${darkMode ? "text-slate-400" : "text-indigo-400"}`}>
-            Ticketing & Management
-          </span>
-        </div>
+      <div className="p-8">
+        <img
+          src={darkMode ? logoDark : logoLight}
+          alt="Eventify"
+          onClick={() => navigate('/')}
+          className="w-48 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
       </div>
 
       <nav className="flex-1 px-6 space-y-3 mt-8">
@@ -392,10 +389,13 @@ function TabletSidebar({ darkMode, navigate }) {
       `}
     >
       {/* Logo icon */}
-      <div className="pt-6 pb-4">
-        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
-          <LogoIcon />
-        </div>
+      <div className="px-3 py-4">
+        <img
+          src={darkMode ? logoDark : logoLight}
+          alt="Eventify"
+          onClick={() => navigate('/')}
+          className="w-12 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
       </div>
 
       <div className={`w-8 h-px mb-4 ${darkMode ? "bg-white/10" : "bg-slate-100"}`} />
@@ -532,24 +532,12 @@ function MobileTopBar({ darkMode, searchQuery, setSearchQuery, isSearchActive, s
     <div className="md:hidden mb-6">
       {/* Brand row */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
-            <LogoIcon />
-          </div>
-          <div>
-            <span className={`text-lg font-black tracking-tighter ${darkMode ? "text-white" : "text-indigo-600"}`}>
-              Eventify
-            </span>
-          </div>
-        </div>
-        {!user && (
-          <button
-            onClick={() => navigate("/login")}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all active:scale-95"
-          >
-            Log In
-          </button>
-        )}
+        <img
+          src={darkMode ? logoDark : logoLight}
+          alt="Eventify"
+          onClick={() => navigate('/')}
+          className="w-32 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
       </div>
 
       {/* Search */}
@@ -1641,11 +1629,11 @@ export default function Eventpage() {
             category: e.category?.category_name || "General",
             location: e.venue?.location || "TBD",
             price: e.tickets && e.tickets.length > 0 ? e.tickets[0].price : 0,
-            image: e.image_url 
+            image: e.image_url
               ? (e.image_url.startsWith('http') ? e.image_url : `${secrets.backendEndpoint}/storage/${e.image_url}`)
               : "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1200&q=80"
           }));
-          
+
           if (mapped.length > 0) {
             setDynamicEvents(mapped);
             setFeaturedEvents(mapped.slice(0, 5));

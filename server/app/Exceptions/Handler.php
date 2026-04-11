@@ -4,6 +4,9 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -41,40 +44,33 @@ class Handler extends ExceptionHandler
 
     /**
      * Render an exception into an HTTP response.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param \Throwable $exception
-     * @return \Illuminate\Http\JsonResponse|\Symfony\Component\HttpFoundation\Response
      */
     public function render($request, Throwable $exception)
     {
-        $message = $this->getMessage($exception);
+        if ($request->expectsJson() || $request->is('api/*')) {
+            $status = 500;
+            $response = [
+                'success' => false,
+                'message' => $exception->getMessage() ?: 'An unexpected error occurred.'
+            ];
 
-        return response()->json([
-            'success' => false,
-            'message' => $message,
-        ], 200);
-    }
+            if ($exception instanceof ValidationException) {
+                $status = 422;
+                // Get the first error message to be used as the top-level message
+                $errors = $exception->errors();
+                $firstError = collect($errors)->flatten()->first();
+                $response['message'] = $firstError ?: 'The given data was invalid.';
+                $response['errors'] = $errors;
+            } elseif ($exception instanceof ModelNotFoundException) {
+                $status = 404;
+                $response['message'] = 'Resource not found.';
+            } elseif ($exception instanceof HttpException) {
+                $status = $exception->getStatusCode();
+            }
 
-
-
-    /**
-     * Get the error message from the exception.
-     *
-     * @param \Throwable $exception
-     * @return string
-     */
-    protected function getMessage(Throwable $exception): string
-    {
-        if ($exception instanceof ValidationException) {
-            return 'Validation failed.';
+            return response()->json($response, $status);
         }
 
-        if ($exception instanceof ModelNotFoundException) {
-            return 'Resource not found.';
-        }
-
-        return $exception->getMessage() ?: 'An unexpected error occurred.';
+        return parent::render($request, $exception);
     }
-
 }

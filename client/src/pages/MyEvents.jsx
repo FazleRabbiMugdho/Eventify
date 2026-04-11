@@ -5,7 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import {
   Calendar, MapPin, Users, DollarSign,
   TrendingUp, LayoutDashboard, PlusSquare, User,
-  Bell, X,
+  Bell, X, Search,
 } from "lucide-react";
 import img1 from "../assets/1.jpg";
 import ApiClient from "../api";
@@ -13,6 +13,8 @@ import {
   AnimationStyles, FadeIn, InViewFade,
   CountUp, SkeletonStatCard, SkeletonHostedCard, usePageLoad,
 } from "../components/ui";
+import logoLight from '../assets/eventify-logo-light.png';
+import logoDark from '../assets/eventify-logo-dark.png';
 
 
 // ─── Logo SVG ─────────────────────────────────────────────────────────────────
@@ -36,14 +38,13 @@ function LogoIcon() {
 function DesktopSidebar({ darkMode, navigate }) {
   return (
     <aside className={`hidden lg:flex w-72 border-r transition-all duration-500 flex-col sticky top-0 h-screen z-50 shrink-0 ${darkMode ? "bg-[#0F0121] border-white/5" : "bg-white border-slate-100"}`}>
-      <div className="p-8 flex items-center gap-4">
-        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/20 shrink-0">
-          <LogoIcon />
-        </div>
-        <div className="flex flex-col">
-          <span className={`text-2xl font-black tracking-tighter ${darkMode ? "text-white" : "text-indigo-600"}`}>Eventify</span>
-          <span className={`text-xs font-bold ${darkMode ? "text-slate-400" : "text-indigo-400"}`}>Ticketing & Management</span>
-        </div>
+      <div className="p-8">
+        <img
+          src={darkMode ? logoDark : logoLight}
+          alt="Eventify"
+          onClick={() => navigate('/')}
+          className="w-48 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
       </div>
       <nav className="flex-1 px-6 space-y-3 mt-8">
         <button onClick={() => navigate("/")} className={`w-full flex items-center gap-4 px-5 py-4 rounded-[22px] font-bold text-[15px] transition-all ripple-btn ${darkMode ? "text-slate-400 hover:text-white hover:bg-white/5" : "text-slate-500 hover:bg-slate-50"}`}>
@@ -65,8 +66,13 @@ function DesktopSidebar({ darkMode, navigate }) {
 function TabletSidebar({ darkMode, navigate }) {
   return (
     <aside className={`hidden md:flex lg:hidden w-20 border-r transition-all duration-500 flex-col sticky top-0 h-screen z-50 shrink-0 items-center ${darkMode ? "bg-[#0F0121] border-white/5" : "bg-white border-slate-100"}`}>
-      <div className="pt-6 pb-4">
-        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20"><LogoIcon /></div>
+      <div className="pt-6 pb-4 px-3">
+        <img
+          src={darkMode ? logoDark : logoLight}
+          alt="Eventify"
+          onClick={() => navigate('/')}
+          className="w-12 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+        />
       </div>
       <div className={`w-8 h-px mb-4 ${darkMode ? "bg-white/10" : "bg-slate-100"}`} />
       <nav className="flex flex-col gap-3 px-3 flex-1">
@@ -80,7 +86,7 @@ function TabletSidebar({ darkMode, navigate }) {
 
 // ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
 
-function MobileBottomNav({ darkMode, navigate }) {
+function MobileBottomNav({ darkMode, navigate, onNotifPress, unreadCount = 0 }) {
   return (
     <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-4 pt-3 pb-4 border-t backdrop-blur-xl ${darkMode ? "bg-[#0F0121]/95 border-white/5" : "bg-white/95 border-slate-100"}`}>
       <button onClick={() => navigate("/")} className="flex flex-col items-center gap-1 px-3 py-1">
@@ -94,6 +100,15 @@ function MobileBottomNav({ darkMode, navigate }) {
       <button onClick={() => navigate("/create-event")} className="flex flex-col items-center gap-1 px-3 py-1 -mt-6">
         <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-[20px] flex items-center justify-center shadow-xl shadow-indigo-600/40 border-4 border-white dark:border-[#0F0121]"><PlusSquare size={22} className="text-white" /></div>
         <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider mt-1">Create</span>
+      </button>
+      <button onClick={onNotifPress} className="flex flex-col items-center gap-1 px-3 py-1 relative">
+        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><Bell size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
+        {unreadCount > 0 && (
+          <span className="absolute top-0 right-1 w-5 h-5 bg-rose-500 text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white dark:border-[#0F0121]">
+            {unreadCount}
+          </span>
+        )}
+        <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? "text-slate-500" : "text-slate-400"}`}>Alerts</span>
       </button>
       <button onClick={() => navigate("/profile")} className="flex flex-col items-center gap-1 px-3 py-1">
         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${darkMode ? "bg-white/5" : "bg-slate-100"}`}><User size={18} className={darkMode ? "text-slate-400" : "text-slate-500"} /></div>
@@ -110,7 +125,8 @@ export default function MyEvents() {
   const { darkMode } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("hosting");
-  
+  const [showNotif, setShowNotif] = useState(false);
+
   const [hostingEvents, setHostingEvents] = useState([]);
   const [attendingEvents, setAttendingEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -168,7 +184,7 @@ export default function MyEvents() {
   const formatEvent = (evt) => {
     const attendeesCount = evt.tickets?.reduce((acc, t) => acc + (t.bookings?.length || 0), 0) || 0;
     const revenueSum = evt.tickets?.reduce((acc, t) => acc + ((t.bookings?.length || 0) * Number(t.price || 0)), 0) || 0;
-    
+
     // Improved image path resolution from the conflict version
     let imageUrl = img1;
     if (evt.image_url) {
@@ -184,7 +200,7 @@ export default function MyEvents() {
       date: new Date(evt.start_date_time).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       location: evt.venue?.location || evt.venue?.name || "TBD",
       attendees: attendeesCount,
-      revenue: `BDT ${revenueSum.toLocaleString()}`, 
+      revenue: `BDT ${revenueSum.toLocaleString()}`,
       growth: "+0%",
       category: evt.category?.category_name || "General",
       price: evt.tickets && evt.tickets.length > 0 ? `BDT ${evt.tickets[0].price}` : "Free",
@@ -321,8 +337,8 @@ export default function MyEvents() {
                       </div>
                       <div className="flex items-center gap-2">
                         {activeTab === "hosting" && (
-                          <button 
-                            onClick={() => handleDelete(event.id)} 
+                          <button
+                            onClick={() => handleDelete(event.id)}
                             className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
                           >
                             <X size={16} strokeWidth={3} />
@@ -347,7 +363,7 @@ export default function MyEvents() {
         </button>
       </div>
 
-      <MobileBottomNav darkMode={darkMode} navigate={navigate} />
+      <MobileBottomNav darkMode={darkMode} navigate={navigate} onNotifPress={() => setShowNotif(!showNotif)} unreadCount={3} />
     </div>
   );
 }

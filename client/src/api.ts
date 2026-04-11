@@ -78,24 +78,25 @@ class ApiClient {
 
 
  async login(email: string, password: string): Promise<User | undefined> {
-  try {
+    try {
 
-    const response = await this.client.post("/api/login", { email, password });
+      const response = await this.client.post("/api/login", { email, password });
 
-    const token = response.data.token;
+      const token = response.data.token;
 
-    if (token) {
-      this.setToken(token);
+      if (token) {
+        this.setToken(token);
+      }
+
+      toast.success("Login successful");
+
+      return response.data;
+
+    } catch (error) {
+       this.handleError(error);
     }
-
-    toast.success("Login successful");
-
-    return response.data;
-
-  } catch (error) {
-    this.handleError(error);
-  }
  }
+
 
   async logout() {
     try {
@@ -242,8 +243,27 @@ class ApiClient {
   private handleError(error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
-        const data = error.response.data as { message?: string; error?: string };
+        const data = error.response.data as { message?: string; error?: string; errors?: Record<string, string[]> };
         const message = data.message || data.error || "Server error";
+
+        // Handle Laravel validation errors (422)
+        if (error.response.status === 422 && data.errors) {
+          Object.values(data.errors).forEach((errorGroup: string[]) => {
+            if (Array.isArray(errorGroup)) {
+              errorGroup.forEach((msg) => toast.error(msg));
+            }
+          });
+          return; // Stop here as we've already shown all specific toasts
+        } else if (error.response.status === 422 && !data.message) {
+          // If data is just the errors object directly
+          const errors = data as unknown as Record<string, string[]>;
+          Object.values(errors).forEach((errorGroup: string[]) => {
+            if (Array.isArray(errorGroup)) {
+              errorGroup.forEach((msg) => toast.error(msg));
+            }
+          });
+          return;
+        }
 
         console.error("API Error:", message);
         toast.error(message);
